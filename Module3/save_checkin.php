@@ -12,30 +12,27 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $BookingID        = $_POST['BookingID'] ?? '';
 $StudentID        = $_POST['StudentID'] ?? '';
-$ParkingSpaceID   = $_POST['ParkingSpaceID'] ?? '';   // FIXED HERE
+$ParkingSpaceID   = $_POST['ParkingSpaceID'] ?? '';
 $ExpectedDuration = (int)($_POST['ExpectedDuration'] ?? 0);
 
 if ($BookingID === '' || $StudentID === '' || $ParkingSpaceID === '' || $ExpectedDuration <= 0) {
-    echo "<script>
-            alert('Invalid check-in data.');
-            window.history.back();
-          </script>";
+    echo "<script>alert('Invalid check-in data.'); window.history.back();</script>";
     exit();
 }
 
 // =======================================
-// GENERATE LogID (LG001, LG002, ...)
+// GENERATE LogID (LG001, LG002…)
 // =======================================
-$idQuery = "SELECT MAX(LogID) AS lastID FROM parkinglog";
+$idQuery  = "SELECT MAX(LogID) AS lastID FROM parkinglog";
 $idResult = mysqli_query($conn, $idQuery);
-$idRow = mysqli_fetch_assoc($idResult);
+$idRow    = mysqli_fetch_assoc($idResult);
 
-$num = ($idRow && $idRow['lastID']) ? (int)substr($idRow['lastID'], 2) + 1 : 1;
+$num  = ($idRow && $idRow['lastID']) ? (int)substr($idRow['lastID'], 2) + 1 : 1;
 $LogID = 'LG' . str_pad($num, 3, '0', STR_PAD_LEFT);
-$now = date('Y-m-d H:i:s');
+$now   = date('Y-m-d H:i:s');
 
 // =======================================
-// 1️⃣ INSERT INTO ParkingLog
+// INSERT INTO parkinglog
 // =======================================
 $insertSql = "
     INSERT INTO parkinglog 
@@ -49,7 +46,7 @@ if (!mysqli_query($conn, $insertSql)) {
 }
 
 // =======================================
-// 2️⃣ UPDATE BOOKING STATUS → Active
+// UPDATE BOOKING STATUS → Active
 // =======================================
 $updBooking = "
     UPDATE booking 
@@ -59,27 +56,22 @@ $updBooking = "
 mysqli_query($conn, $updBooking);
 
 // =======================================
-// 3️⃣ UPDATE PARKING SPACE STATUS
-// your status list:
-// ST01 = Available
-// ST02 = Occupied
-// ST03 = Reserved
-// ST04 = OutOfService
+// UPDATE PARKING SPACE STATUS
 // =======================================
-
-$occupiedStatus = 'ST02';  // correct value for OCCUPIED
+$occupiedStatus = 'ST02'; // Occupied
 
 $updSpace = "
-    UPDATE parkingspace 
-    SET StatusID = '$occupiedStatus',
-        status_updated_at = NOW()
+    UPDATE parking_space 
+    SET StatusID = '$occupiedStatus'
     WHERE ParkingSpaceID = '$ParkingSpaceID'
 ";
 
-mysqli_query($conn, $updSpace);
+if (!mysqli_query($conn, $updSpace)) {
+    die('Database error (space update): ' . mysqli_error($conn));
+}
 
 // =======================================
-// 4️⃣ REDIRECT TO CHECKOUT
+// REDIRECT TO CHECKOUT
 // =======================================
 header("Location: checkout.php?log=" . urlencode($LogID));
 exit();
