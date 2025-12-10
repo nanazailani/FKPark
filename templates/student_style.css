@@ -1,0 +1,115 @@
+body {
+    margin: 0;
+    font-family: "Poppins", Arial, sans-serif;
+    background: #F4F9FF; /* Light blue background */
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background: #D0E3FF; /* Light blue */
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding-top: 25px;
+    box-shadow: 3px 0 10px rgba(0,0,0,0.08);
+    border-right: 4px solid #5B9BFF; /* Strong blue border */
+    border-radius: 0 20px 20px 0;
+}
+
+.sidebar h2 {
+    text-align: center;
+    color: #003A75;
+    margin-bottom: 30px;
+    font-weight: 700;
+    font-size: 22px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 14px 28px;
+    margin: 8px 15px;
+    color: #003A75;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    background: #E7F1FF; /* softer blue */
+    border-radius: 12px;
+    transition: 0.25s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.sidebar a:hover {
+    background: #C9DDFF;
+    transform: scale(1.03);
+}
+
+/* Main content */
+.main-content {
+    margin-left: 270px;
+    padding: 30px;
+    width: calc(100% - 270px);
+}
+
+/* Header */
+.header {
+    background: #5B9BFF;
+    padding: 18px 25px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+/* Page box */
+.box {
+    background: #FFFFFF;
+    padding: 20px;
+    border-radius: 20px;
+    margin-top: 20px;
+    border-left: 8px solid #5B9BFF;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+.box h2 {
+    margin-top: 0;
+    color: #003A75;
+    font-weight: 700;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+th {
+    background: #C9DDFF;
+    padding: 12px;
+    color: #003A75;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #DCEBFF;
+    font-size: 14px;
+    color: #003A75;
+}
+
+tr:hover {
+    background: #EAF3FF;
+}
+
+.center {
+    text-align: center;
+}
