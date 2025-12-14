@@ -199,7 +199,16 @@ $result = mysqli_query($conn, $sql);
         document.getElementById("punishmentFilter").addEventListener("change", filterAndSortTable);
         document.getElementById("sortPoints").addEventListener("change", filterAndSortTable);
     </script>
-
+    <script>
+        //pageshow - event bila page show. e.g - tekan background
+        window.addEventListener("pageshow", function(event) {
+            //true kalau the page is cached 
+            if (event.persisted) {
+                //page reload
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
 
 </html>

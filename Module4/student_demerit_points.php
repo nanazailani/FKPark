@@ -336,6 +336,18 @@ if ($totalPoints < 20) {
             </div>
         </div>
     </div>
+
+    <script>
+        //pageshow - event bila page show. e.g - tekan background
+        window.addEventListener("pageshow", function(event) {
+            //true kalau the page is cached 
+            if (event.persisted) {
+                //page reload
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
+
 
 </html>

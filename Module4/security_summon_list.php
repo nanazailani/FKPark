@@ -280,7 +280,16 @@ $result = mysqli_query($conn, $sql);
             window.location.href = "security_delete_summon.php?id=" + deleteID;
         });
     </script>
-
+    <script>
+        //pageshow - event bila page show. e.g - tekan background
+        window.addEventListener("pageshow", function(event) {
+            //true kalau the page is cached 
+            if (event.persisted) {
+                //page reload
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
 
 </html>

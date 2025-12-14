@@ -2,9 +2,9 @@
 // Make sure session is started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
-header("Expires: 0");
+    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+    header("Pragma: no-cache");
+    header("Expires: 0");
 }
 ?>
 
@@ -17,8 +17,8 @@ header("Expires: 0");
             Welcome! <?= $_SESSION['UserName']; ?>
         </h3>
 
-        <a href="../Module1/admin_edit_profile.php?id=<?= $_SESSION['UserID']; ?>" 
-           style="font-size:13px; color:#FF7A00; font-weight:600; text-decoration:none;">
+        <a href="../Module1/admin_edit_profile.php?id=<?= $_SESSION['UserID']; ?>"
+            style="font-size:13px; color:#FF7A00; font-weight:600; text-decoration:none;">
             Manage Profile ⚙️
         </a>
     </div>
