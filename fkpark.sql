@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Dec 10, 2025 at 02:00 AM
+-- Generation Time: Dec 14, 2025 at 04:05 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -114,11 +114,11 @@ INSERT INTO `parkinglog` (`LogID`, `BookingID`, `StudentID`, `ParkingSpaceID`, `
 
 CREATE TABLE `parking_area` (
   `ParkingAreaID` varchar(10) NOT NULL,
-  `StatusID` varchar(10) DEFAULT NULL,
   `AreaCode` varchar(20) DEFAULT NULL,
   `AreaName` varchar(50) DEFAULT NULL,
   `AreaType` varchar(20) DEFAULT NULL,
   `AreaDescription` text DEFAULT NULL,
+  `AreaStatus` varchar(20) NOT NULL DEFAULT 'Active',
   `Capacity` int(11) DEFAULT NULL,
   `LocationDesc` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -127,11 +127,11 @@ CREATE TABLE `parking_area` (
 -- Dumping data for table `parking_area`
 --
 
-INSERT INTO `parking_area` (`ParkingAreaID`, `StatusID`, `AreaCode`, `AreaName`, `AreaType`, `AreaDescription`, `Capacity`, `LocationDesc`) VALUES
-('PA01', 'ST01', 'A1', 'Student Parking Zone A', 'Student', 'Main student parking area', 50, 'Near Block A'),
-('PA02', 'ST01', 'B1', 'Student Parking Zone B', 'Student', 'Overflow student parking', 40, 'Near Block B'),
-('PA03', 'ST01', 'C1', 'Staff Parking Zone C', 'Staff', 'Reserved staff parking', 30, 'Near Admin Building'),
-('PA343', 'ST02', 'D', 'Staff Parking D', 'Staff', 'staff only', 10, 'Near FK West Wing');
+INSERT INTO `parking_area` (`ParkingAreaID`, `AreaCode`, `AreaName`, `AreaType`, `AreaDescription`, `AreaStatus`, `Capacity`, `LocationDesc`) VALUES
+('PA01', 'A1', 'Student Parking Zone A', 'Student', 'Main student parking area', 'Closed', 50, 'Near Block A'),
+('PA02', 'B1', 'Student Parking Zone B', 'Student', 'Overflow student parking', 'Active', 40, 'Near Block B'),
+('PA03', 'C1', 'Staff Parking Zone C', 'Staff', 'Reserved staff parking', 'Active', 30, 'Near Admin Building'),
+('PA406', 'F', 'Student Parking D', 'Student', 'ghjgjh', 'Inactive', 10, 'bhhjgjghj');
 
 -- --------------------------------------------------------
 
@@ -157,7 +157,9 @@ INSERT INTO `parking_space` (`ParkingSpaceID`, `ParkingAreaID`, `StatusID`, `Spa
 ('PS003', 'PA01', 'ST01', 'A-03', 'Car'),
 ('PS004', 'PA01', 'ST01', 'A-04', 'Car'),
 ('PS005', 'PA01', 'ST01', 'A-05', 'Car'),
-('PS462', 'PA03', 'ST03', 'C-003', 'Car');
+('PS462', 'PA03', 'ST03', 'C-003', 'Car'),
+('PS568', 'PA01', 'ST01', 'B-003', 'Car'),
+('PS814', 'PA02', 'ST03', 'B-003', 'Car');
 
 -- --------------------------------------------------------
 
@@ -204,6 +206,7 @@ CREATE TABLE `space_qr_code` (
   `QRCodeID` int(11) NOT NULL,
   `ParkingSpaceID` varchar(10) NOT NULL,
   `QRCodeData` text DEFAULT NULL,
+  `QRImage` varchar(255) DEFAULT NULL,
   `GeneratedDate` datetime DEFAULT NULL,
   `GeneratedBy` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -212,8 +215,12 @@ CREATE TABLE `space_qr_code` (
 -- Dumping data for table `space_qr_code`
 --
 
-INSERT INTO `space_qr_code` (`QRCodeID`, `ParkingSpaceID`, `QRCodeData`, `GeneratedDate`, `GeneratedBy`) VALUES
-(1, 'PS001', 'QR-PS001-0498fa', '2025-12-09 15:20:52', 'A001');
+INSERT INTO `space_qr_code` (`QRCodeID`, `ParkingSpaceID`, `QRCodeData`, `QRImage`, `GeneratedDate`, `GeneratedBy`) VALUES
+(1, 'PS001', 'QR-PS001-0498fa', NULL, '2025-12-09 15:20:52', 'A001'),
+(2, 'PS002', 'BOOK-SP-PS002-a2aed38d', NULL, '2025-12-12 07:51:47', 'A001'),
+(3, 'PS814', 'BOOK-SP-PS814-43f06718', NULL, '2025-12-12 07:57:25', 'A001'),
+(4, 'PS001', 'BOOK-SP-PS001-da8ecdfe', 'qr_PS001_1765600280.png', '2025-12-13 05:31:20', 'A001'),
+(5, 'PS002', 'BOOK-SP-PS002-1290b837', 'qr_PS002_1765600324.png', '2025-12-13 05:32:04', 'A001');
 
 -- --------------------------------------------------------
 
@@ -397,8 +404,7 @@ ALTER TABLE `parkinglog`
 -- Indexes for table `parking_area`
 --
 ALTER TABLE `parking_area`
-  ADD PRIMARY KEY (`ParkingAreaID`),
-  ADD KEY `StatusID` (`StatusID`);
+  ADD PRIMARY KEY (`ParkingAreaID`);
 
 --
 -- Indexes for table `parking_space`
@@ -487,7 +493,7 @@ ALTER TABLE `violationtype`
 -- AUTO_INCREMENT for table `space_qr_code`
 --
 ALTER TABLE `space_qr_code`
-  MODIFY `QRCodeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `QRCodeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
@@ -521,12 +527,6 @@ ALTER TABLE `parkinglog`
   ADD CONSTRAINT `parkinglog_ibfk_1` FOREIGN KEY (`BookingID`) REFERENCES `booking` (`BookingID`),
   ADD CONSTRAINT `parkinglog_ibfk_2` FOREIGN KEY (`StudentID`) REFERENCES `student` (`StudentID`),
   ADD CONSTRAINT `parkinglog_ibfk_3` FOREIGN KEY (`ParkingSpaceID`) REFERENCES `parking_space` (`ParkingSpaceID`);
-
---
--- Constraints for table `parking_area`
---
-ALTER TABLE `parking_area`
-  ADD CONSTRAINT `parking_area_ibfk_1` FOREIGN KEY (`StatusID`) REFERENCES `space_status` (`StatusID`);
 
 --
 -- Constraints for table `parking_space`
