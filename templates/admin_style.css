@@ -112,3 +112,40 @@ tr:hover {
 .center {
     text-align: center;
 }
+
+/* Action buttons */
+.btn-success {
+    background: #4CAF50;
+    color: #fff;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    transition: 0.25s;
+}
+
+.btn-success:hover {
+    background: #43a047;
+    transform: scale(1.05);
+}
+
+.btn-danger {
+    background: #E74C3C;
+    color: #fff;
+    padding: 12px 26px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 12px;
+    transition: 0.25s;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+    transform: scale(1.05);
+}

@@ -24,6 +24,9 @@ header("Expires: 0");
     </div>
 
     <a href="../Module1/admin_dashboard.php">🏠 Dashboard</a>
+    <a href="../Module2/manage_parking_area.php">📁 Manage Areas</a>
+    <a href="../Module2/manage_spaces.php">🅿️ Manage Spaces</a>
+    <a href="../Module2/daily_availability.php">📊 Daily Availability</a>
     <a href="../Module3/admin_booking_dashboard.php">📉 Book Analysis Dashboard</a>
     <a href="../Module1/admin_user_registration.php">👤 Student Registration</a>
     <a href="../Module1/admin_user_list.php">📑 View Profiles</a>
