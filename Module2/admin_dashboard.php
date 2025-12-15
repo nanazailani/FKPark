@@ -27,12 +27,20 @@ $available_spaces = fetch_one($conn, "
 /* Area status (grouped by StatusID / StatusName) */
 $area_status_labels = [];
 $area_status_data = [];
+$area_status_labels = [];
+$area_status_data = [];
+
 $res = $conn->query("
-    SELECT pa.StatusID, COALESCE(ss.StatusName, pa.StatusID) AS name, COUNT(*) AS cnt
-    FROM parking_area pa
-    LEFT JOIN space_status ss ON pa.StatusID = ss.StatusID
-    GROUP BY pa.StatusID, name
+    SELECT AreaStatus AS name, COUNT(*) AS cnt
+    FROM parking_area
+    GROUP BY AreaStatus
 ");
+
+while ($r = $res->fetch_assoc()) {
+    $area_status_labels[] = $r['name'];
+    $area_status_data[] = (int)$r['cnt'];
+}
+
 while ($r = $res->fetch_assoc()) {
     $area_status_labels[] = $r['name'];
     $area_status_data[] = (int)$r['cnt'];
