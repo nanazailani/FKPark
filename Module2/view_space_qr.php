@@ -40,7 +40,7 @@ $qr = $stmt->get_result()->fetch_assoc();
 
 <div class="main-content">
 <div class="page-box">
-<header class="header">Space QR</header>
+<header class="header">🔳 Space QR</header>
 
 <div class="box print-box">
 <?php if ($qr): ?>

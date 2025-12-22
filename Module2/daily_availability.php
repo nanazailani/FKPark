@@ -33,7 +33,7 @@ $res = $conn->query($sql);
 <div class="main-content">
 <div class="page-box">
 
-<header class="header">Daily Availability</header>
+<header class="header">📅 Daily Availability</header>
 
 <div class="box">
   <table>
