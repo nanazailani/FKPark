@@ -1,6 +1,10 @@
 <?php
 require '../config.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
+//clear cache
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 function fetch_one($conn, $sql, $types = '', $params = []) {
     $stmt = $conn->prepare($sql);
@@ -126,6 +130,17 @@ new Chart(document.getElementById('spaceTrendChart'), {
   options: { plugins:{ legend:{ display:false }}, scales:{ y:{ beginAtZero:true } } }
 });
 </script>
-
+<script>
+            //pageshow - event bila page show. e.g - tekan background
+            window.addEventListener("pageshow", function (event) 
+            {
+                //true kalau the page is cached 
+                if (event.persisted) 
+                {
+                    //page reload
+                    window.location.reload();
+                }
+            });
+        </script>
 </body>
 </html>
