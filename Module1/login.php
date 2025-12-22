@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else if ($row['UserRole'] == "Security Staff") {
                 header("Location: ../Module4/security_dashboard.php");
             } else if ($row['UserRole'] == "Administrator") {
-                header("Location: ../Module1/admin_dashboard.php");
+                header("Location: ../Module2/admin_dashboard.php");
             }
             exit();
 
