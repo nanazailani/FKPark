@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="main-content">
   <div class="page-box">
-    <header class="header">Add Parking Area</header>
+    <header class="header">➕📍 Add Parking Area</header>
 
     <div class="box">
       <form method="post" class="form-grid">

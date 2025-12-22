@@ -33,7 +33,7 @@ $res = $conn->query($sql);
 
 <div class="main-content">
     <div class="page-box">
-        <header class="header">Manage Parking Areas</header>
+        <header class="header">📍 Manage Parking Areas</header>
 
         <div class="box">
             <a class="btn" 

@@ -22,7 +22,7 @@ $res = $conn->query($sql);
 <link rel="stylesheet" href="../templates/admin_style.css"></head><body>
 <?php include_once('../templates/admin_sidebar.php'); ?>
 <div class="main-content"><div class="page-box">
-  <header class="header">Manage Spaces</header>
+  <header class="header">🚘 Manage Spaces</header>
   <div class="box">
     <a class="btn" href="add_space.php" style="background:#FF7A00;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;">+ Add Space</a>
 

@@ -83,7 +83,7 @@ $statuses = $conn->query("SELECT StatusID, StatusName FROM space_status");
 <div class="main-content">
   <div class="page-box">
 
-    <header class="header">Edit Parking Space</header>
+    <header class="header">✏️🚘 Edit Parking Space</header>
 
     <div class="box">
       <form method="post" class="form-grid">

@@ -89,7 +89,7 @@ $area = $stmt->get_result()->fetch_assoc();
 
 <div class="main-content">
   <div class="page-box">
-    <header class="header">Edit Parking Area</header>
+    <header class="header">✏️📍Edit Parking Area</header>
 
     <div class="box">
       <form method="post" class="form-grid">

@@ -46,7 +46,7 @@ while ($r = $res->fetch_assoc()) {
     $area_status_data[] = (int)$r['cnt'];
 }
 
-/* ================= YOUR EXISTING TREND ================= */
+
 $trend_labels = [];
 $trend_values = [];
 $base = max(0,(int)$available_spaces);
@@ -55,9 +55,7 @@ for ($i=6;$i>=0;$i--) {
     $trend_values[] = max(0, $base + rand(-2,2));
 }
 
-/* ============================================================
-   ===== BOOKING ADDITION (NEW – DOES NOT TOUCH YOUR CODE) =====
-   ============================================================ */
+
 function count_booking($conn, $sql) {
     $res = $conn->query($sql)->fetch_row();
     return $res ? $res[0] : 0;
@@ -106,7 +104,7 @@ while ($r = $res->fetch_assoc()) {
   <link rel="stylesheet" href="../templates/admin_style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- ===== YOUR EXISTING STYLES (UNCHANGED) ===== -->
+  
   <style>
     body { overflow-x: hidden; }
     .main-content { margin-left: 270px; padding: 30px; }
@@ -129,22 +127,22 @@ else echo '<div style="position:fixed;left:0;top:0;width:250px;height:100vh;back
 
 <div class="main-content">
   <div class="page-box">
-    <header class="header">Administrator Dashboard</header>
+    <header class="header">🧑‍💼 Administrator Dashboard</header>
 
-    <!-- ================= YOUR EXISTING CARDS ================= -->
+    <!-- ===== PARKING CARDS ===== -->
     <section class="cards">
       <div class="card"><div class="card-title">Total Parking Areas</div><div class="card-value"><?= $total_areas ?></div></div>
       <div class="card"><div class="card-title">Total Parking Spaces</div><div class="card-value"><?= $total_spaces ?></div></div>
       <div class="card"><div class="card-title">Student Areas</div><div class="card-value"><?= $student_areas ?></div></div>
       <div class="card"><div class="card-title">Available Spaces Today</div><div class="card-value"><?= $available_spaces ?></div></div>
 
-      <!-- ===== BOOKING CARDS (NEW) ===== -->
+      <!-- ===== BOOKING CARDS ===== -->
       <div class="card"><div class="card-title">Total Bookings</div><div class="card-value"><?= $total_bookings ?></div></div>
       <div class="card"><div class="card-title">Today’s Bookings</div><div class="card-value"><?= $today_bookings ?></div></div>
       <div class="card"><div class="card-title">Active Bookings</div><div class="card-value"><?= $active_bookings ?></div></div>
     </section>
 
-    <!-- ================= YOUR EXISTING CHARTS ================= -->
+    <!-- ================= CHARTS ================= -->
     <section class="panels">
       <div class="panel" style="flex:1;min-width:360px;">
         <h3 style="color:#7A4B00">Parking Areas Status</h3>
@@ -156,7 +154,7 @@ else echo '<div style="position:fixed;left:0;top:0;width:250px;height:100vh;back
       </div>
     </section>
 
-    <!-- ===== BOOKING CHARTS (NEW) ===== -->
+    <!-- ===== BOOKING CHARTS ===== -->
     <section class="panels" style="margin-top:18px;">
       <div class="panel" style="flex:1;min-width:360px;">
         <h3 style="color:#7A4B00">Bookings Per Day</h3>
@@ -171,7 +169,7 @@ else echo '<div style="position:fixed;left:0;top:0;width:250px;height:100vh;back
   </div>
 </div>
 
-<!-- ================= YOUR EXISTING JS ================= -->
+<!-- ================= JS ================= -->
 <script>
 new Chart(document.getElementById('areasStatusChart'), {
   type: 'doughnut',
@@ -186,7 +184,7 @@ new Chart(document.getElementById('spaceTrendChart'), {
 });
 </script>
 
-<!-- ===== BOOKING JS (NEW) ===== -->
+<!-- ===== BOOKING JS ===== -->
 <script>
 new Chart(document.getElementById('bookingLineChart'), {
   type: 'line',
