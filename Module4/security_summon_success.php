@@ -13,28 +13,42 @@ if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') 
     exit();
 }
 
-$summonID = mysqli_real_escape_string($conn, $_GET['id']);
+$summonID = (int)($_GET['id'] ?? 0);
 
 $sql = "
 SELECT 
     s.*, 
     v.PlateNumber, 
     vt.ViolationName, 
-    vt.DemeritPoints,
+    vt.ViolationPoints,
 
     u.UserName AS StudentName,
     u.UserID AS StudentID,
 
-    st.TotalDemeritPoints,
-    st.EnforcementStatus,
+    COALESCE((
+        SELECT SUM(vt2.ViolationPoints)
+        FROM Summon s2
+        JOIN ViolationType vt2 ON s2.ViolationTypeID = vt2.ViolationTypeID
+        JOIN Vehicle v2 ON s2.VehicleID = v2.VehicleID
+        WHERE v2.UserID = u.UserID
+    ), 0) AS TotalDemeritPoints,
+
+    COALESCE((
+        SELECT p.PunishmentType
+        FROM PunishmentDuration p
+        WHERE p.UserID = u.UserID
+          AND p.Status = 'Active'
+          AND CURDATE() BETWEEN p.StartDate AND p.EndDate
+        ORDER BY p.StartDate DESC
+        LIMIT 1
+    ), 'None') AS EnforcementStatus,
 
     sq.QRCodeData, 
     sq.QRCodeID
 FROM Summon s
 JOIN Vehicle v ON s.VehicleID = v.VehicleID
 JOIN ViolationType vt ON s.ViolationTypeID = vt.ViolationTypeID
-JOIN Student st ON v.StudentID = st.StudentID
-JOIN User u ON st.StudentID = u.UserID
+JOIN User u ON v.UserID = u.UserID
 LEFT JOIN SummonQRCode sq ON s.SummonID = sq.SummonID
 WHERE s.SummonID = '$summonID'
 ";
@@ -49,7 +63,8 @@ if (!$summon) {
     exit();
 }
 
-$previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['DemeritPoints']);
+$previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['ViolationPoints']);
+
 ?>
 
 <!DOCTYPE html>
@@ -180,7 +195,7 @@ $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['DemeritPoints'
         <div class="success-box">
             ✓ Summon <strong><?= $summon['SummonID']; ?></strong> has been successfully created!<br>
             Demerit points updated: <strong><?= $previousPoints; ?> → <?= $summon['TotalDemeritPoints']; ?></strong><br>
-            Enforcement status: <strong><?= $summon['EnforcementStatus']; ?></strong>
+            Enforcement status: <strong><?= $summon['EnforcementStatus'] ?: 'None'; ?></strong>
         </div>
 
         <div class="box">
@@ -203,7 +218,7 @@ $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['DemeritPoints'
             </div>
 
             <div class="detail-row"><span class="detail-label">Demerit Points:</span>
-                <span class="detail-value"><?= $summon['DemeritPoints']; ?></span>
+                <span class="detail-value"><?= $summon['ViolationPoints']; ?></span>
             </div>
 
             <div class="detail-row"><span class="detail-label">Date & Time:</span>
@@ -221,7 +236,8 @@ $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['DemeritPoints'
             <div class="section-title">Summon QR Code</div>
             <div class="qr-box">
                 <?php if (!empty($summon['QRCodeData'])): ?>
-                    <img src="<?= $summon['QRCodeData']; ?>" style="width:200px;height:200px;border-radius:12px;border:2px solid #EEE;">
+                    <img src="<?= htmlspecialchars('qrcodes/' . basename($summon['QRCodeData'])); ?>"
+                        style="width:200px;height:200px;border-radius:12px;border:2px solid #EEE;">
                 <?php else: ?>
                     <p>No QR code available.</p>
                 <?php endif; ?>
@@ -239,17 +255,15 @@ $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['DemeritPoints'
 
     </div>
     <script>
-            //pageshow - event bila page show. e.g - tekan background
-            window.addEventListener("pageshow", function (event) 
-            {
-                //true kalau the page is cached 
-                if (event.persisted) 
-                {
-                    //page reload
-                    window.location.reload();
-                }
-            });
-        </script>
+        //pageshow - event bila page show. e.g - tekan background
+        window.addEventListener("pageshow", function(event) {
+            //true kalau the page is cached 
+            if (event.persisted) {
+                //page reload
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
 
 </html>

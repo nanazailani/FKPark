@@ -1,6 +1,10 @@
 <?php
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once '../config.php';
+require_once __DIR__ . '/phpqrcode/phpqrcode.php';
 
 // Only Security Staff can access (optional but recommended)
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] !== 'Security Staff') {
@@ -47,6 +51,108 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     ";
     mysqli_query($conn, $sqlInsert);
     $summonID = mysqli_insert_id($conn);
+
+    // ===== INSERT DEMERIT RECORD =====
+    $getPoints = mysqli_query($conn, "
+        SELECT ViolationPoints 
+        FROM ViolationType 
+        WHERE ViolationTypeID = '$violationTypeID'
+    ");
+    $pointsRow = mysqli_fetch_assoc($getPoints);
+    $points = (int)($pointsRow['ViolationPoints'] ?? 0);
+
+    mysqli_query($conn, "
+        INSERT INTO Demerit (SummonID, DemeritPoints, IssuedDate, Status)
+        VALUES ('$summonID', '$points', CURDATE(), 'Active')
+    ");
+
+    // ================= ENFORCEMENT LOGIC (AUTO) =================
+
+    // Get UserID from Vehicle
+    $getUser = mysqli_query($conn, "
+        SELECT UserID FROM Vehicle WHERE VehicleID = '$vehicleID'
+    ");
+    $userRow = mysqli_fetch_assoc($getUser);
+    $userID = $userRow['UserID'] ?? null;
+
+    if ($userID) {
+
+        // Calculate total demerit points
+        $getTotal = mysqli_query($conn, "
+            SELECT SUM(d.DemeritPoints) AS TotalPoints
+            FROM Demerit d
+            JOIN Summon s ON d.SummonID = s.SummonID
+            JOIN Vehicle v ON s.VehicleID = v.VehicleID
+            WHERE v.UserID = '$userID'
+        ");
+        $totalRow = mysqli_fetch_assoc($getTotal);
+        $totalPoints = (int)($totalRow['TotalPoints'] ?? 0);
+
+        // Deactivate existing punishment
+        mysqli_query($conn, "
+            UPDATE PunishmentDuration
+            SET Status = 'Inactive'
+            WHERE UserID = '$userID' AND Status = 'Active'
+        ");
+
+        // Apply rules
+        if ($totalPoints < 20) {
+            // Warning only (no DB insert)
+        } elseif ($totalPoints < 50) {
+            mysqli_query($conn, "
+                INSERT INTO PunishmentDuration
+                (PunishmentType, StartDate, EndDate, Status, UserID)
+                VALUES
+                ('Vehicle Revoked (1 Semester)', CURDATE(),
+                 DATE_ADD(CURDATE(), INTERVAL 6 MONTH),
+                 'Active', '$userID')
+            ");
+        } elseif ($totalPoints < 80) {
+            mysqli_query($conn, "
+                INSERT INTO PunishmentDuration
+                (PunishmentType, StartDate, EndDate, Status, UserID)
+                VALUES
+                ('Vehicle Revoked (2 Semesters)', CURDATE(),
+                 DATE_ADD(CURDATE(), INTERVAL 12 MONTH),
+                 'Active', '$userID')
+            ");
+        } else {
+            mysqli_query($conn, "
+                INSERT INTO PunishmentDuration
+                (PunishmentType, StartDate, EndDate, Status, UserID)
+                VALUES
+                ('Vehicle Revoked (Entire Study)', CURDATE(),
+                 '2099-12-31',
+                 'Active', '$userID')
+            ");
+        }
+    }
+
+    // ===== QR CODE GENERATION =====
+    $qrDir = __DIR__ . '/qrcodes/';
+    if (!is_dir($qrDir)) {
+        mkdir($qrDir, 0777, true);
+    }
+
+    $qrText = "http://localhost/FKPark/Module4/view_summon.php?id=" . $summonID;
+    $qrFileName = "summon_" . $summonID . ".png";
+    $qrFilePath = $qrDir . $qrFileName;
+
+    // Generate QR image
+    QRcode::png($qrText, $qrFilePath, QR_ECLEVEL_L, 6);
+
+    // Add QR code generation safety check
+    if (!file_exists($qrFilePath)) {
+        die("ERROR: QR code generation failed.");
+    }
+
+    // Save QR to database
+    $qrPublicPath = "../Module4/qrcodes/" . $qrFileName;
+
+    mysqli_query($conn, "
+        INSERT INTO SummonQRCode (SummonID, QRCodeData, GenerateDate)
+        VALUES ('$summonID', '$qrPublicPath', NOW())
+    ");
 
     // Optional redirect
     header("Location: security_summon_success.php?id=" . $summonID);
