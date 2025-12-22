@@ -23,7 +23,7 @@ if (session_status() === PHP_SESSION_NONE) {
         </a>
     </div>
 
-    <a href="../Module1/admin_dashboard.php">🏠 Dashboard</a>
+    <a href="../Module2/admin_dashboard.php">🏠 Dashboard</a>
     <a href="../Module2/manage_parking_area.php">📁 Manage Areas</a>
     <a href="../Module2/manage_spaces.php">🅿️ Manage Spaces</a>
     <a href="../Module2/daily_availability.php">📊 Daily Availability</a>
