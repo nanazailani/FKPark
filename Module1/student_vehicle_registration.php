@@ -48,9 +48,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Insert into database
     $sql = "
-        INSERT INTO Vehicle (VehicleID, StudentID, PlateNumber, VehicleType, VehicleGrant, ApprovalStatus)
-        VALUES ('$newVehicleID', '$studentID', '$plate', '$type', '$publicURL', 'Pending')
-    ";
+    INSERT INTO Vehicle (VehicleID, UserID, PlateNumber, VehicleType, VehicleGrant, ApprovalStatus)
+    VALUES ('$newVehicleID', '$studentID', '$plate', '$type', '$publicURL', 'Pending')
+";
+
 
     mysqli_query($conn, $sql);
 

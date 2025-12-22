@@ -35,7 +35,16 @@ if (isset($_POST['update'])) {
 
     $name = mysqli_real_escape_string($conn, $_POST['name']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
+    $passwordInput = $_POST['password'];
+
+    // If admin typed a new password → hash it
+    if (!empty($passwordInput)) {
+        $hashedPassword = password_hash($passwordInput, PASSWORD_DEFAULT);
+    } else {
+        // Keep old password if field is empty
+        $hashedPassword = $user['UserPassword'];
+    }
+
     $role = mysqli_real_escape_string($conn, $_POST['role']);
     $status = mysqli_real_escape_string($conn, $_POST['status']);
 
@@ -43,10 +52,11 @@ if (isset($_POST['update'])) {
         UPDATE User
         SET UserName='$name',
             UserEmail='$email',
-            UserPassword='$password',
+            UserPassword='$hashedPassword',
             UserRole='$role'
         WHERE UserID='$userID'
     ";
+
 
     mysqli_query($conn, $update);
 
@@ -64,107 +74,79 @@ if (isset($_POST['delete'])) {
 
     $id = mysqli_real_escape_string($conn, $_POST['userid']);
 
-    // Detect the user role
+    // Get role
     $roleQuery = mysqli_query($conn, "SELECT UserRole FROM user WHERE UserID='$id'");
-    $roleData = mysqli_fetch_assoc($roleQuery);
-    $role = $roleData['UserRole'];
-
+    $roleData  = mysqli_fetch_assoc($roleQuery);
+    $role      = $roleData['UserRole'];
 
     // ============================
     // IF STUDENT
     // ============================
-    if ($role == "Student") {
+    if ($role === "Student") {
 
-        // 1️⃣ BOOKING MODULE
-        mysqli_query($conn, "DELETE FROM bookingqrcode 
-             WHERE BookingID IN (SELECT BookingID FROM booking WHERE StudentID='$id')");
-        mysqli_query($conn, "DELETE FROM parkinglog WHERE StudentID='$id'");
-        mysqli_query($conn, "DELETE FROM booking WHERE StudentID='$id'");
-
-
-        // 2️⃣ SUMMON MODULE (FK-safe)
-        $summonIDs = [];
-        $getSummons = mysqli_query($conn, "
-            SELECT SummonID 
-            FROM summon 
-            WHERE VehicleID IN (SELECT VehicleID FROM vehicle WHERE StudentID='$id')
+        // 1️⃣ Get all vehicle IDs owned by student
+        $vehicleIDs = [];
+        $getVehicles = mysqli_query($conn, "
+            SELECT VehicleID FROM vehicle WHERE UserID='$id'
         ");
 
-        while ($row = mysqli_fetch_assoc($getSummons)) {
-            $summonIDs[] = $row['SummonID'];
+        while ($v = mysqli_fetch_assoc($getVehicles)) {
+            $vehicleIDs[] = $v['VehicleID'];
         }
 
-        if (!empty($summonIDs)) {
+        if (!empty($vehicleIDs)) {
+            $vIDs = "'" . implode("','", $vehicleIDs) . "'";
 
-            $ids = implode(",", $summonIDs);
+            // 2️⃣ Get summons linked to vehicles
+            $summonIDs = [];
+            $getSummons = mysqli_query($conn, "
+                SELECT SummonID FROM summon WHERE VehicleID IN ($vIDs)
+            ");
 
-            // (a) Delete summonqrcode
-            mysqli_query($conn, "DELETE FROM summonqrcode WHERE SummonID IN ($ids)");
+            while ($s = mysqli_fetch_assoc($getSummons)) {
+                $summonIDs[] = $s['SummonID'];
+            }
 
-            // (b) Delete demerit linked to these summons
-            mysqli_query($conn, "DELETE FROM demerit WHERE SummonID IN ($ids)");
+            if (!empty($summonIDs)) {
+                $sIDs = implode(",", $summonIDs);
 
-            // (c) Delete remaining demerit linked to student
-            mysqli_query($conn, "DELETE FROM demerit WHERE StudentID='$id'");
+                mysqli_query($conn, "DELETE FROM summonqrcode WHERE SummonID IN ($sIDs)");
+                mysqli_query($conn, "DELETE FROM demerit WHERE SummonID IN ($sIDs)");
+                mysqli_query($conn, "DELETE FROM summon WHERE SummonID IN ($sIDs)");
+            }
 
-            // (d) Delete summons
-            mysqli_query($conn, "DELETE FROM summon WHERE SummonID IN ($ids)");
+            // 3️⃣ Delete vehicles
+            mysqli_query($conn, "DELETE FROM vehicle WHERE VehicleID IN ($vIDs)");
         }
 
+        // 4️⃣ Booking related
+        mysqli_query($conn, "DELETE FROM bookingqrcode 
+            WHERE BookingID IN (SELECT BookingID FROM booking WHERE UserID='$id')");
+        mysqli_query($conn, "DELETE FROM parkinglog 
+            WHERE BookingID IN (SELECT BookingID FROM booking WHERE UserID='$id')");
+        mysqli_query($conn, "DELETE FROM booking WHERE UserID='$id'");
 
-        // 3️⃣ PUNISHMENT
-        mysqli_query($conn, "DELETE FROM punishmentduration WHERE StudentID='$id'");
-
-        // 4️⃣ VEHICLES
-        mysqli_query($conn, "DELETE FROM vehicle WHERE StudentID='$id'");
-
-        // 5️⃣ STUDENT PROFILE
-        mysqli_query($conn, "DELETE FROM student WHERE StudentID='$id'");
+        // 5️⃣ Punishment & student profile
+        mysqli_query($conn, "DELETE FROM punishmentduration WHERE UserID='$id'");
+        mysqli_query($conn, "DELETE FROM student WHERE UserID='$id'");
     }
-
-
-
 
     // ============================
     // IF SECURITY STAFF
     // ============================
-    if ($role == "Security Staff") {
+    if ($role === "Security Staff") {
 
-        // Get all summons issued by this staff
-        $summonIDs = [];
-        $getSummons = mysqli_query($conn, "
-            SELECT SummonID FROM summon WHERE SStaffID='$id'
+        // Remove approval reference
+        mysqli_query($conn, "
+            UPDATE vehicle SET ApprovedBy = NULL WHERE ApprovedBy='$id'
         ");
 
-        while ($row = mysqli_fetch_assoc($getSummons)) {
-            $summonIDs[] = $row['SummonID'];
-        }
-
-        if (!empty($summonIDs)) {
-
-            $ids = implode(",", $summonIDs);
-
-            // 1️⃣ Delete summonqrcode
-            mysqli_query($conn, "DELETE FROM summonqrcode WHERE SummonID IN ($ids)");
-
-            // 2️⃣ Delete demerit linked to these summons
-            mysqli_query($conn, "DELETE FROM demerit WHERE SummonID IN ($ids)");
-
-            // 3️⃣ Delete summons
-            mysqli_query($conn, "DELETE FROM summon WHERE SummonID IN ($ids)");
-        }
-
-        // 4️⃣ Delete vehicles approved by staff
-        mysqli_query($conn, "DELETE FROM vehicle WHERE SStaffID='$id'");
-
-        // 5️⃣ Delete securitystaff profile
+        // Remove staff profile
         mysqli_query($conn, "DELETE FROM securitystaff WHERE UserID='$id'");
     }
 
-
-
     // ============================
-    // DELETE USER ACCOUNT
+    // DELETE USER ACCOUNT (LAST)
     // ============================
     mysqli_query($conn, "DELETE FROM user WHERE UserID='$id'");
 
@@ -174,6 +156,7 @@ if (isset($_POST['delete'])) {
     </script>";
     exit();
 }
+
 
 
 
@@ -253,10 +236,21 @@ if (isset($_POST['delete'])) {
             <input type="email" name="email" value="<?= $user['UserEmail'] ?>" required>
 
             <label>Password</label>
-            <input type="text" name="password" value="<?= $user['UserPassword'] ?>" required>
+            <input type="password" name="password" placeholder="Enter new password (leave blank to keep current)">
 
             <label>User Role</label>
-            <input type="text" value="<?= $user['UserRole'] ?>" disabled>
+            <select name="role" required>
+                <option value="">-- Select Role --</option>
+                <option value="Administrator" <?= $user['UserRole'] === 'Administrator' ? 'selected' : '' ?>>
+                    Administrator
+                </option>
+                <option value="Student" <?= $user['UserRole'] === 'Student' ? 'selected' : '' ?>>
+                    Student
+                </option>
+                <option value="Security Staff" <?= $user['UserRole'] === 'Security Staff' ? 'selected' : '' ?>>
+                    Security Staff
+                </option>
+            </select>
 
             <button type="submit" name="update" class="btn-save">💾 Save Changes</button>
 

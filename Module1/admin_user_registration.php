@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Insert into Student table
     $sqlStudent = "
-        INSERT INTO student (StudentID, StudentYear, StudentProgram)
+        INSERT INTO student (UserID, StudentYear, StudentProgram)
         VALUES ('$studentID', '$year', '$program')
     ";
 
