@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Dec 14, 2025 at 01:06 PM
+-- Generation Time: Dec 22, 2025 at 12:00 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -81,6 +81,15 @@ CREATE TABLE `demerit` (
   `Status` varchar(15) DEFAULT 'Active',
   `UserID` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `demerit`
+--
+
+INSERT INTO `demerit` (`DemeritID`, `SummonID`, `DemeritPoints`, `IssuedDate`, `Description`, `Status`, `UserID`) VALUES
+(1, 12, 10, '2025-12-22', NULL, 'Active', NULL),
+(2, 13, 10, '2025-12-22', NULL, 'Active', NULL),
+(3, 14, 10, '2025-12-22', NULL, 'Active', NULL);
 
 -- --------------------------------------------------------
 
@@ -172,6 +181,13 @@ CREATE TABLE `punishmentduration` (
   `Status` varchar(50) DEFAULT 'Active',
   `UserID` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `punishmentduration`
+--
+
+INSERT INTO `punishmentduration` (`PunishmentDurationID`, `PunishmentType`, `StartDate`, `EndDate`, `Status`, `UserID`) VALUES
+(1, 'Vehicle Revoked (1 Semester)', '2025-12-22', '2026-06-22', 'Active', 'CB23045');
 
 -- --------------------------------------------------------
 
@@ -277,6 +293,16 @@ CREATE TABLE `summon` (
   `UserID` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `summon`
+--
+
+INSERT INTO `summon` (`SummonID`, `VehicleID`, `ViolationTypeID`, `SummonDate`, `SummonTime`, `Location`, `Evidence`, `SummonStatus`, `UserID`) VALUES
+(11, 'V001', 'VT001', '2025-12-22', '15:49:00', 'FK Parking A', 'http://localhost/FKPark/uploads/many-cake-slices.jpg', 'Unpaid', NULL),
+(12, 'V001', 'VT001', '2025-12-22', '15:49:00', 'FK Parking A', 'http://localhost/FKPark/uploads/many-cake-slices.jpg', 'Unpaid', NULL),
+(13, 'V001', 'VT001', '2025-12-22', '15:51:00', 'FK Parking A', 'http://localhost/FKPark/uploads/many-cake-slices.jpg', 'Unpaid', NULL),
+(14, 'V001', 'VT001', '2025-12-22', '15:51:00', 'FK Parking A', 'http://localhost/FKPark/uploads/many-cake-slices.jpg', 'Unpaid', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -289,6 +315,14 @@ CREATE TABLE `summonqrcode` (
   `QRCodeData` text DEFAULT NULL,
   `GenerateDate` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `summonqrcode`
+--
+
+INSERT INTO `summonqrcode` (`QRCodeID`, `SummonID`, `QRCodeData`, `GenerateDate`) VALUES
+(6, 12, '../Module4/qrcodes/summon_12.png', '2025-12-22 15:50:49'),
+(7, 14, '../Module4/qrcodes/summon_14.png', '2025-12-22 15:52:14');
 
 -- --------------------------------------------------------
 
@@ -309,9 +343,9 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`UserID`, `UserName`, `UserEmail`, `UserPassword`, `UserRole`) VALUES
-('A001', 'System Administrator', 'admin@fkpark.edu.my', '$2y$12$spAnsIMSlhwJU9tU9/Sd1eymbFra5qBaRHMhZ2mt9vDWYk3eLy7xG', 'Administrator'),
-('CB23045', 'Ahmad Danial bin Razak', 'CB23045@adab.umpsa.edu.my', '$2y$12$1JRZs.vgDlJm0WD3NQmdFudlre9S8xW.Zh1PgAJ9nOQrmaWJGhIkC', 'Student'),
-('SS001', 'Mohd Rizal bin Ahmad', 'staff001@umpsa.edu.my', '$2y$12$CK2acAvowJPmTpTXwR8v5./Vuvvj6KVlDUlZXb8xc/zz94k5A06eG', 'Security Staff');
+('A001', 'System Administrator', 'admin@fkpark.edu.my', '$2y$10$0rHR.fGC1FScG5qJDtYOy..TTZgDcuamu8JX2eRA6LTTuTl/wrNCi', 'Administrator'),
+('CB23045', 'Ahmad Danial bin Razak', 'CB23045@adab.umpsa.edu.my', '$2y$10$xjeh17xSs3oRL5Warf5exeTGCwpUBvJEtZ3evoupgo2Bz3UCxGcPS', 'Student'),
+('SS001', 'Mohd Rizal bin Ahmad', 'staff001@umpsa.edu.my', '$2y$10$iqYYfaLG7MARa18d/2/cQeaOOm6dhPqjgVpCO8sA5kRHy3DoG/E9a', 'Security Staff');
 
 -- --------------------------------------------------------
 
@@ -325,15 +359,16 @@ CREATE TABLE `vehicle` (
   `VehicleType` varchar(15) DEFAULT NULL,
   `VehicleGrant` varchar(100) DEFAULT NULL,
   `ApprovalStatus` varchar(15) DEFAULT 'Pending',
-  `UserID` varchar(10) DEFAULT NULL
+  `UserID` varchar(10) DEFAULT NULL,
+  `ApprovedBy` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `vehicle`
 --
 
-INSERT INTO `vehicle` (`VehicleID`, `PlateNumber`, `VehicleType`, `VehicleGrant`, `ApprovalStatus`, `UserID`) VALUES
-('V001', 'ABC 1234', 'Car', '../uploads/vehicle_grants/Screenshot 2025-12-09 135117.png', 'Approved', 'CB23045');
+INSERT INTO `vehicle` (`VehicleID`, `PlateNumber`, `VehicleType`, `VehicleGrant`, `ApprovalStatus`, `UserID`, `ApprovedBy`) VALUES
+('V001', 'ABC1234', 'Car', '../uploads/vehicle_grants/Screenshot 2025-12-09 135117.png', 'Approved', 'CB23045', 'SS001');
 
 -- --------------------------------------------------------
 
@@ -467,7 +502,8 @@ ALTER TABLE `user`
 --
 ALTER TABLE `vehicle`
   ADD PRIMARY KEY (`VehicleID`),
-  ADD KEY `fk_vehicle_user` (`UserID`);
+  ADD KEY `fk_vehicle_user` (`UserID`),
+  ADD KEY `fk_vehicle_approvedby` (`ApprovedBy`);
 
 --
 -- Indexes for table `violationtype`
@@ -480,10 +516,34 @@ ALTER TABLE `violationtype`
 --
 
 --
+-- AUTO_INCREMENT for table `demerit`
+--
+ALTER TABLE `demerit`
+  MODIFY `DemeritID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `punishmentduration`
+--
+ALTER TABLE `punishmentduration`
+  MODIFY `PunishmentDurationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `space_qr_code`
 --
 ALTER TABLE `space_qr_code`
   MODIFY `QRCodeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `summon`
+--
+ALTER TABLE `summon`
+  MODIFY `SummonID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `summonqrcode`
+--
+ALTER TABLE `summonqrcode`
+  MODIFY `QRCodeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
@@ -506,8 +566,7 @@ ALTER TABLE `bookingqrcode`
 -- Constraints for table `demerit`
 --
 ALTER TABLE `demerit`
-  ADD CONSTRAINT `demerit_ibfk_2` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`),
-  ADD CONSTRAINT `fk_demerit_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`);
+  ADD CONSTRAINT `fk_demerit_summon` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `parkinglog`
@@ -526,7 +585,8 @@ ALTER TABLE `parking_space`
 -- Constraints for table `punishmentduration`
 --
 ALTER TABLE `punishmentduration`
-  ADD CONSTRAINT `fk_duration_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`);
+  ADD CONSTRAINT `fk_duration_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`),
+  ADD CONSTRAINT `fk_punishment_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `securitystaff`
@@ -553,6 +613,8 @@ ALTER TABLE `student`
 --
 ALTER TABLE `summon`
   ADD CONSTRAINT `fk_summon_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`),
+  ADD CONSTRAINT `fk_summon_vehicle` FOREIGN KEY (`VehicleID`) REFERENCES `vehicle` (`VehicleID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_summon_vehicle_fix` FOREIGN KEY (`VehicleID`) REFERENCES `vehicle` (`VehicleID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `summon_ibfk_1` FOREIGN KEY (`VehicleID`) REFERENCES `vehicle` (`VehicleID`),
   ADD CONSTRAINT `summon_ibfk_3` FOREIGN KEY (`ViolationTypeID`) REFERENCES `violationtype` (`ViolationTypeID`);
 
@@ -560,12 +622,14 @@ ALTER TABLE `summon`
 -- Constraints for table `summonqrcode`
 --
 ALTER TABLE `summonqrcode`
-  ADD CONSTRAINT `summonqrcode_ibfk_1` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`);
+  ADD CONSTRAINT `fk_qrcode_summon` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `summonqrcode_ibfk_1` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `vehicle`
 --
 ALTER TABLE `vehicle`
+  ADD CONSTRAINT `fk_vehicle_approvedby` FOREIGN KEY (`ApprovedBy`) REFERENCES `user` (`UserID`),
   ADD CONSTRAINT `fk_vehicle_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`);
 COMMIT;
 
