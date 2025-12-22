@@ -1,6 +1,10 @@
 <?php
 require '../config.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
+//clear cache
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 $id = $_GET['id'] ?? '';
 if (!$id) {
@@ -85,7 +89,7 @@ $area = $stmt->get_result()->fetch_assoc();
 
 <div class="main-content">
   <div class="page-box">
-    <header class="header">Edit Parking Area</header>
+    <header class="header">✏️📍Edit Parking Area</header>
 
     <div class="box">
       <form method="post" class="form-grid">
@@ -129,5 +133,17 @@ $area = $stmt->get_result()->fetch_assoc();
 
   </div>
 </div>
+<script>
+            //pageshow - event bila page show. e.g - tekan background
+            window.addEventListener("pageshow", function (event) 
+            {
+                //true kalau the page is cached 
+                if (event.persisted) 
+                {
+                    //page reload
+                    window.location.reload();
+                }
+            });
+        </script>
 </body>
 </html>

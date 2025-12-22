@@ -1,6 +1,10 @@
 <?php
 require '../config.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
+//clear cache
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 $areaFilter = $_GET['area'] ?? '';
 
@@ -18,7 +22,7 @@ $res = $conn->query($sql);
 <link rel="stylesheet" href="../templates/admin_style.css"></head><body>
 <?php include_once('../templates/admin_sidebar.php'); ?>
 <div class="main-content"><div class="page-box">
-  <header class="header">Manage Spaces</header>
+  <header class="header">🚘 Manage Spaces</header>
   <div class="box">
     <a class="btn" href="add_space.php" style="background:#FF7A00;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;">+ Add Space</a>
 
@@ -44,4 +48,16 @@ $res = $conn->query($sql);
 
   </div>
 </div></div>
+<script>
+            //pageshow - event bila page show. e.g - tekan background
+            window.addEventListener("pageshow", function (event) 
+            {
+                //true kalau the page is cached 
+                if (event.persisted) 
+                {
+                    //page reload
+                    window.location.reload();
+                }
+            });
+        </script>
 </body></html>

@@ -28,5 +28,6 @@ header("Expires: 0");
     <a href="../Module4/security_demerit_list.php">📉 Demerit Records</a>
     <a href="../Module4/security_create_summon.php">➕ Issue Summon</a>
     <a href="../Module1/security_approve_vehicle.php">✅ Approve Vehicle Registration</a>
+    <a href="../Module1/security_approved_list.php">📝 Approved Vehicle List</a>
     <a href="../Module1/logout.php" style="color:#B30000;">🚪 Logout</a>
 </div>

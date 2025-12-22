@@ -13,30 +13,39 @@ if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') 
 
 // ======================= HANDLE APPROVE / REJECT =========================
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $vehicleID = $_POST['vehicleID'];
+
+    $vehicleID = mysqli_real_escape_string($conn, $_POST['vehicleID']);
+    $staffID   = $_SESSION['UserID']; // Security Staff ID
 
     if (isset($_POST['approve'])) {
         $status = "Approved";
-    } else if (isset($_POST['reject'])) {
+    } elseif (isset($_POST['reject'])) {
         $status = "Rejected";
+    } else {
+        exit();
     }
 
     mysqli_query($conn, "
-        UPDATE Vehicle
-        SET ApprovalStatus = '$status'
+        UPDATE vehicle
+        SET ApprovalStatus = '$status',
+            ApprovedBy = '$staffID'
         WHERE VehicleID = '$vehicleID'
     ");
 
-    echo "<script>alert('Vehicle status updated!'); window.location='security_approve_vehicle.php';</script>";
+    echo "<script>
+        alert('Vehicle status updated!');
+        window.location='security_approve_vehicle.php';
+    </script>";
     exit();
 }
+
 
 // ======================= GET ALL PENDING VEHICLES =========================
 $query = "
     SELECT V.*, U.UserName, U.UserEmail
     FROM Vehicle V
-    JOIN Student S ON V.StudentID = S.StudentID
-    JOIN User U ON S.StudentID = U.UserID
+    JOIN Student S ON V.UserID = S.UserID
+    JOIN User U ON S.UserID = U.UserID
     WHERE V.ApprovalStatus = 'Pending'
 ";
 

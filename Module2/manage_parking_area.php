@@ -1,6 +1,10 @@
 <?php
 require '../config.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
+//clear cache
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 // Updated SQL: removed StatusID + removed JOIN + added AreaStatus
 $sql = "SELECT 
@@ -29,7 +33,7 @@ $res = $conn->query($sql);
 
 <div class="main-content">
     <div class="page-box">
-        <header class="header">Manage Parking Areas</header>
+        <header class="header">📍 Manage Parking Areas</header>
 
         <div class="box">
             <a class="btn" 
@@ -86,6 +90,17 @@ $res = $conn->query($sql);
         </div>
     </div>
 </div>
-
+<script>
+            //pageshow - event bila page show. e.g - tekan background
+            window.addEventListener("pageshow", function (event) 
+            {
+                //true kalau the page is cached 
+                if (event.persisted) 
+                {
+                    //page reload
+                    window.location.reload();
+                }
+            });
+        </script>
 </body>
 </html>

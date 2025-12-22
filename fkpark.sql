@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Dec 14, 2025 at 04:05 AM
+-- Generation Time: Dec 22, 2025 at 12:00 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -29,22 +29,22 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `booking` (
   `BookingID` varchar(10) NOT NULL,
-  `StudentID` varchar(10) NOT NULL,
   `ParkingSpaceID` varchar(10) NOT NULL,
   `BookingDate` date DEFAULT NULL,
   `StartTime` time DEFAULT NULL,
   `EndTime` time DEFAULT NULL,
   `Status` varchar(20) DEFAULT NULL,
-  `CreatedAt` datetime DEFAULT NULL
+  `CreatedAt` datetime DEFAULT NULL,
+  `UserID` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `booking`
 --
 
-INSERT INTO `booking` (`BookingID`, `StudentID`, `ParkingSpaceID`, `BookingDate`, `StartTime`, `EndTime`, `Status`, `CreatedAt`) VALUES
-('BK001', 'CB23045', 'PS002', '2025-12-09', '14:26:00', '16:29:00', 'Completed', '2025-12-09 14:26:39'),
-('BK002', 'CB23045', 'PS003', '2025-12-09', '20:26:00', '21:27:00', 'Cancelled', '2025-12-09 14:27:10');
+INSERT INTO `booking` (`BookingID`, `ParkingSpaceID`, `BookingDate`, `StartTime`, `EndTime`, `Status`, `CreatedAt`, `UserID`) VALUES
+('BK001', 'PS002', '2025-12-09', '14:26:00', '16:29:00', 'Completed', '2025-12-09 14:26:39', 'CB23045'),
+('BK002', 'PS003', '2025-12-09', '20:26:00', '21:27:00', 'Cancelled', '2025-12-09 14:27:10', 'CB23045');
 
 -- --------------------------------------------------------
 
@@ -56,32 +56,47 @@ CREATE TABLE `bookingqrcode` (
   `QRCodeID` int(11) NOT NULL,
   `BookingID` varchar(10) NOT NULL,
   `QRCodeData` text DEFAULT NULL,
-  `GeneratedDate` datetime DEFAULT NULL,
-  `GeneratedBy` varchar(10) DEFAULT NULL
+  `GeneratedDate` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `bookingqrcode`
 --
 
-INSERT INTO `bookingqrcode` (`QRCodeID`, `BookingID`, `QRCodeData`, `GeneratedDate`, `GeneratedBy`) VALUES
-(0, 'BK001', 'BOOK-BK001-79a8a087', '2025-12-09 14:26:39', 'CB23045');
+INSERT INTO `bookingqrcode` (`QRCodeID`, `BookingID`, `QRCodeData`, `GeneratedDate`) VALUES
+(0, 'BK001', 'BOOK-BK001-79a8a087', '2025-12-09 14:26:39');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `demerit`
+-- Table structure for table `Demerit`
 --
 
-CREATE TABLE `demerit` (
+CREATE TABLE `Demerit` (
   `DemeritID` int(11) NOT NULL,
-  `StudentID` varchar(10) NOT NULL,
   `SummonID` int(11) NOT NULL,
   `DemeritPoints` int(11) NOT NULL,
   `IssuedDate` date DEFAULT NULL,
   `Description` text DEFAULT NULL,
-  `Status` varchar(15) DEFAULT 'Active'
+  `Status` varchar(15) DEFAULT 'Active',
+  `UserID` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+<<<<<<< HEAD
+-- Dumping data for table `demerit`
+--
+
+INSERT INTO `demerit` (`DemeritID`, `SummonID`, `DemeritPoints`, `IssuedDate`, `Description`, `Status`, `UserID`) VALUES
+=======
+-- Dumping data for table `Demerit`
+--
+
+INSERT INTO `Demerit` (`DemeritID`, `SummonID`, `DemeritPoints`, `IssuedDate`, `Description`, `Status`, `UserID`) VALUES
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
+(1, 12, 10, '2025-12-22', NULL, 'Active', NULL),
+(2, 13, 10, '2025-12-22', NULL, 'Active', NULL),
+(3, 14, 10, '2025-12-22', NULL, 'Active', NULL);
 
 -- --------------------------------------------------------
 
@@ -92,8 +107,6 @@ CREATE TABLE `demerit` (
 CREATE TABLE `parkinglog` (
   `LogID` varchar(10) NOT NULL,
   `BookingID` varchar(10) NOT NULL,
-  `StudentID` varchar(10) NOT NULL,
-  `ParkingSpaceID` varchar(10) NOT NULL,
   `CheckInTime` datetime DEFAULT NULL,
   `ExpectedDuration` time DEFAULT NULL,
   `CheckOutTime` datetime DEFAULT NULL
@@ -103,8 +116,8 @@ CREATE TABLE `parkinglog` (
 -- Dumping data for table `parkinglog`
 --
 
-INSERT INTO `parkinglog` (`LogID`, `BookingID`, `StudentID`, `ParkingSpaceID`, `CheckInTime`, `ExpectedDuration`, `CheckOutTime`) VALUES
-('LG001', 'BK001', 'CB23045', 'PS002', '2025-12-09 07:29:13', '00:00:15', '2025-12-09 07:30:46');
+INSERT INTO `parkinglog` (`LogID`, `BookingID`, `CheckInTime`, `ExpectedDuration`, `CheckOutTime`) VALUES
+('LG001', 'BK001', '2025-12-09 07:29:13', '00:00:15', '2025-12-09 07:30:46');
 
 -- --------------------------------------------------------
 
@@ -164,17 +177,31 @@ INSERT INTO `parking_space` (`ParkingSpaceID`, `ParkingAreaID`, `StatusID`, `Spa
 -- --------------------------------------------------------
 
 --
--- Table structure for table `punishmentduration`
+-- Table structure for table `PunishmentDuration`
 --
 
-CREATE TABLE `punishmentduration` (
+CREATE TABLE `PunishmentDuration` (
   `PunishmentDurationID` int(11) NOT NULL,
-  `StudentID` varchar(10) NOT NULL,
   `PunishmentType` varchar(50) DEFAULT NULL,
   `StartDate` date DEFAULT NULL,
   `EndDate` date DEFAULT NULL,
-  `Status` varchar(50) DEFAULT 'Active'
+  `Status` varchar(50) DEFAULT 'Active',
+  `UserID` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+<<<<<<< HEAD
+-- Dumping data for table `punishmentduration`
+--
+
+INSERT INTO `punishmentduration` (`PunishmentDurationID`, `PunishmentType`, `StartDate`, `EndDate`, `Status`, `UserID`) VALUES
+=======
+-- Dumping data for table `PunishmentDuration`
+--
+
+INSERT INTO `PunishmentDuration` (`PunishmentDurationID`, `PunishmentType`, `StartDate`, `EndDate`, `Status`, `UserID`) VALUES
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
+(1, 'Vehicle Revoked (1 Semester)', '2025-12-22', '2026-06-22', 'Active', 'CB23045');
 
 -- --------------------------------------------------------
 
@@ -183,8 +210,7 @@ CREATE TABLE `punishmentduration` (
 --
 
 CREATE TABLE `securitystaff` (
-  `SStaffID` varchar(10) NOT NULL,
-  `UserID` varchar(10) DEFAULT NULL,
+  `UserID` varchar(10) NOT NULL,
   `Department` varchar(50) DEFAULT NULL,
   `BadgeNumber` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -193,8 +219,8 @@ CREATE TABLE `securitystaff` (
 -- Dumping data for table `securitystaff`
 --
 
-INSERT INTO `securitystaff` (`SStaffID`, `UserID`, `Department`, `BadgeNumber`) VALUES
-('SS001', 'SS001', 'Safety Management Unit', 'SMU-001');
+INSERT INTO `securitystaff` (`UserID`, `Department`, `BadgeNumber`) VALUES
+('SS001', 'Safety Management Unit', 'SMU-001');
 
 -- --------------------------------------------------------
 
@@ -251,8 +277,7 @@ INSERT INTO `space_status` (`StatusID`, `StatusName`, `Description`) VALUES
 --
 
 CREATE TABLE `student` (
-  `StudentID` varchar(10) NOT NULL,
-  `UserID` varchar(10) DEFAULT NULL,
+  `UserID` varchar(10) NOT NULL,
   `StudentYear` varchar(10) DEFAULT NULL,
   `StudentProgram` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -261,39 +286,71 @@ CREATE TABLE `student` (
 -- Dumping data for table `student`
 --
 
-INSERT INTO `student` (`StudentID`, `UserID`, `StudentYear`, `StudentProgram`) VALUES
-('CB23045', 'CB23045', 'Year 2', 'Software Engineering');
+INSERT INTO `student` (`UserID`, `StudentYear`, `StudentProgram`) VALUES
+('CB23045', 'Year 2', 'Software Engineering');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `summon`
+-- Table structure for table `Summon`
 --
 
-CREATE TABLE `summon` (
+CREATE TABLE `Summon` (
   `SummonID` int(11) NOT NULL,
   `VehicleID` varchar(10) NOT NULL,
-  `SStaffID` varchar(10) DEFAULT NULL,
   `ViolationTypeID` varchar(10) NOT NULL,
   `SummonDate` date DEFAULT NULL,
   `SummonTime` time DEFAULT NULL,
   `Location` varchar(50) DEFAULT NULL,
   `Evidence` text DEFAULT NULL,
-  `SummonStatus` varchar(15) DEFAULT 'Issued'
+  `SummonStatus` varchar(15) DEFAULT 'Issued',
+  `UserID` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+<<<<<<< HEAD
+-- Dumping data for table `summon`
+--
+
+INSERT INTO `summon` (`SummonID`, `VehicleID`, `ViolationTypeID`, `SummonDate`, `SummonTime`, `Location`, `Evidence`, `SummonStatus`, `UserID`) VALUES
+=======
+-- Dumping data for table `Summon`
+--
+
+INSERT INTO `Summon` (`SummonID`, `VehicleID`, `ViolationTypeID`, `SummonDate`, `SummonTime`, `Location`, `Evidence`, `SummonStatus`, `UserID`) VALUES
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
+(11, 'V001', 'VT001', '2025-12-22', '15:49:00', 'FK Parking A', 'http://localhost/FKPark/uploads/many-cake-slices.jpg', 'Unpaid', NULL),
+(12, 'V001', 'VT001', '2025-12-22', '15:49:00', 'FK Parking A', 'http://localhost/FKPark/uploads/many-cake-slices.jpg', 'Unpaid', NULL),
+(13, 'V001', 'VT001', '2025-12-22', '15:51:00', 'FK Parking A', 'http://localhost/FKPark/uploads/many-cake-slices.jpg', 'Unpaid', NULL),
+(14, 'V001', 'VT001', '2025-12-22', '15:51:00', 'FK Parking A', 'http://localhost/FKPark/uploads/many-cake-slices.jpg', 'Unpaid', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `summonqrcode`
+-- Table structure for table `SummonQRCode`
 --
 
-CREATE TABLE `summonqrcode` (
+CREATE TABLE `SummonQRCode` (
   `QRCodeID` int(11) NOT NULL,
   `SummonID` int(11) NOT NULL,
   `QRCodeData` text DEFAULT NULL,
   `GenerateDate` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+<<<<<<< HEAD
+-- Dumping data for table `summonqrcode`
+--
+
+INSERT INTO `summonqrcode` (`QRCodeID`, `SummonID`, `QRCodeData`, `GenerateDate`) VALUES
+=======
+-- Dumping data for table `SummonQRCode`
+--
+
+INSERT INTO `SummonQRCode` (`QRCodeID`, `SummonID`, `QRCodeData`, `GenerateDate`) VALUES
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
+(6, 12, '../Module4/qrcodes/summon_12.png', '2025-12-22 15:50:49'),
+(7, 14, '../Module4/qrcodes/summon_14.png', '2025-12-22 15:52:14');
 
 -- --------------------------------------------------------
 
@@ -314,9 +371,9 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`UserID`, `UserName`, `UserEmail`, `UserPassword`, `UserRole`) VALUES
-('A001', 'System Administrator', 'admin@fkpark.edu.my', '$2y$12$spAnsIMSlhwJU9tU9/Sd1eymbFra5qBaRHMhZ2mt9vDWYk3eLy7xG', 'Administrator'),
-('CB23045', 'Ahmad Danial bin Razak', 'CB23045@adab.umpsa.edu.my', '$2y$12$1JRZs.vgDlJm0WD3NQmdFudlre9S8xW.Zh1PgAJ9nOQrmaWJGhIkC', 'Student'),
-('SS001', 'Mohd Rizal bin Ahmad', 'staff001@umpsa.edu.my', '$2y$12$CK2acAvowJPmTpTXwR8v5./Vuvvj6KVlDUlZXb8xc/zz94k5A06eG', 'Security Staff');
+('A001', 'System Administrator', 'admin@fkpark.edu.my', '$2y$10$0rHR.fGC1FScG5qJDtYOy..TTZgDcuamu8JX2eRA6LTTuTl/wrNCi', 'Administrator'),
+('CB23045', 'Ahmad Danial bin Razak', 'CB23045@adab.umpsa.edu.my', '$2y$10$xjeh17xSs3oRL5Warf5exeTGCwpUBvJEtZ3evoupgo2Bz3UCxGcPS', 'Student'),
+('SS001', 'Mohd Rizal bin Ahmad', 'staff001@umpsa.edu.my', '$2y$10$iqYYfaLG7MARa18d/2/cQeaOOm6dhPqjgVpCO8sA5kRHy3DoG/E9a', 'Security Staff');
 
 -- --------------------------------------------------------
 
@@ -326,20 +383,25 @@ INSERT INTO `user` (`UserID`, `UserName`, `UserEmail`, `UserPassword`, `UserRole
 
 CREATE TABLE `vehicle` (
   `VehicleID` varchar(10) NOT NULL,
-  `StudentID` varchar(10) DEFAULT NULL,
-  `SStaffID` varchar(10) DEFAULT NULL,
   `PlateNumber` varchar(15) NOT NULL,
   `VehicleType` varchar(15) DEFAULT NULL,
   `VehicleGrant` varchar(100) DEFAULT NULL,
-  `ApprovalStatus` varchar(15) DEFAULT 'Pending'
+  `ApprovalStatus` varchar(15) DEFAULT 'Pending',
+  `UserID` varchar(10) DEFAULT NULL,
+  `ApprovedBy` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `vehicle`
 --
 
-INSERT INTO `vehicle` (`VehicleID`, `StudentID`, `SStaffID`, `PlateNumber`, `VehicleType`, `VehicleGrant`, `ApprovalStatus`) VALUES
-('V001', 'CB23045', NULL, 'ABC 1234', 'Car', '../uploads/vehicle_grants/Screenshot 2025-12-09 135117.png', 'Approved');
+<<<<<<< HEAD
+INSERT INTO `vehicle` (`VehicleID`, `PlateNumber`, `VehicleType`, `VehicleGrant`, `ApprovalStatus`, `UserID`, `ApprovedBy`) VALUES
+('V001', 'ABC1234', 'Car', '../uploads/vehicle_grants/Screenshot 2025-12-09 135117.png', 'Approved', 'CB23045', 'SS001');
+=======
+INSERT INTO `vehicle` (`VehicleID`, `PlateNumber`, `VehicleType`, `VehicleGrant`, `ApprovalStatus`, `UserID`) VALUES
+('V001', 'ABC1234', 'Car', '../uploads/vehicle_grants/Screenshot 2025-12-09 135117.png', 'Approved', 'CB23045');
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
 
 -- --------------------------------------------------------
 
@@ -372,33 +434,30 @@ INSERT INTO `violationtype` (`ViolationTypeID`, `ViolationName`, `ViolationPoint
 --
 ALTER TABLE `booking`
   ADD PRIMARY KEY (`BookingID`),
-  ADD KEY `StudentID` (`StudentID`),
-  ADD KEY `ParkingSpaceID` (`ParkingSpaceID`);
+  ADD KEY `ParkingSpaceID` (`ParkingSpaceID`),
+  ADD KEY `fk_booking_user` (`UserID`);
 
 --
 -- Indexes for table `bookingqrcode`
 --
 ALTER TABLE `bookingqrcode`
   ADD PRIMARY KEY (`QRCodeID`),
-  ADD KEY `BookingID` (`BookingID`),
-  ADD KEY `GeneratedBy` (`GeneratedBy`);
+  ADD KEY `BookingID` (`BookingID`);
 
 --
--- Indexes for table `demerit`
+-- Indexes for table `Demerit`
 --
-ALTER TABLE `demerit`
+ALTER TABLE `Demerit`
   ADD PRIMARY KEY (`DemeritID`),
-  ADD KEY `StudentID` (`StudentID`),
-  ADD KEY `SummonID` (`SummonID`);
+  ADD KEY `SummonID` (`SummonID`),
+  ADD KEY `fk_demerit_user` (`UserID`);
 
 --
 -- Indexes for table `parkinglog`
 --
 ALTER TABLE `parkinglog`
   ADD PRIMARY KEY (`LogID`),
-  ADD KEY `BookingID` (`BookingID`),
-  ADD KEY `StudentID` (`StudentID`),
-  ADD KEY `ParkingSpaceID` (`ParkingSpaceID`);
+  ADD KEY `BookingID` (`BookingID`);
 
 --
 -- Indexes for table `parking_area`
@@ -415,17 +474,17 @@ ALTER TABLE `parking_space`
   ADD KEY `StatusID` (`StatusID`);
 
 --
--- Indexes for table `punishmentduration`
+-- Indexes for table `PunishmentDuration`
 --
-ALTER TABLE `punishmentduration`
+ALTER TABLE `PunishmentDuration`
   ADD PRIMARY KEY (`PunishmentDurationID`),
-  ADD KEY `StudentID` (`StudentID`);
+  ADD KEY `fk_duration_user` (`UserID`);
 
 --
 -- Indexes for table `securitystaff`
 --
 ALTER TABLE `securitystaff`
-  ADD PRIMARY KEY (`SStaffID`),
+  ADD PRIMARY KEY (`UserID`),
   ADD KEY `UserID` (`UserID`);
 
 --
@@ -446,22 +505,22 @@ ALTER TABLE `space_status`
 -- Indexes for table `student`
 --
 ALTER TABLE `student`
-  ADD PRIMARY KEY (`StudentID`),
+  ADD PRIMARY KEY (`UserID`),
   ADD KEY `UserID` (`UserID`);
 
 --
--- Indexes for table `summon`
+-- Indexes for table `Summon`
 --
-ALTER TABLE `summon`
+ALTER TABLE `Summon`
   ADD PRIMARY KEY (`SummonID`),
   ADD KEY `VehicleID` (`VehicleID`),
-  ADD KEY `SStaffID` (`SStaffID`),
-  ADD KEY `ViolationTypeID` (`ViolationTypeID`);
+  ADD KEY `ViolationTypeID` (`ViolationTypeID`),
+  ADD KEY `fk_summon_user` (`UserID`);
 
 --
--- Indexes for table `summonqrcode`
+-- Indexes for table `SummonQRCode`
 --
-ALTER TABLE `summonqrcode`
+ALTER TABLE `SummonQRCode`
   ADD PRIMARY KEY (`QRCodeID`),
   ADD KEY `SummonID` (`SummonID`);
 
@@ -476,8 +535,8 @@ ALTER TABLE `user`
 --
 ALTER TABLE `vehicle`
   ADD PRIMARY KEY (`VehicleID`),
-  ADD KEY `StudentID` (`StudentID`),
-  ADD KEY `SStaffID` (`SStaffID`);
+  ADD KEY `fk_vehicle_user` (`UserID`),
+  ADD KEY `fk_vehicle_approvedby` (`ApprovedBy`);
 
 --
 -- Indexes for table `violationtype`
@@ -490,10 +549,58 @@ ALTER TABLE `violationtype`
 --
 
 --
+<<<<<<< HEAD
+-- AUTO_INCREMENT for table `demerit`
+--
+ALTER TABLE `demerit`
+  MODIFY `DemeritID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `punishmentduration`
+--
+ALTER TABLE `punishmentduration`
+=======
+-- AUTO_INCREMENT for table `Demerit`
+--
+ALTER TABLE `Demerit`
+  MODIFY `DemeritID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `PunishmentDuration`
+--
+ALTER TABLE `PunishmentDuration`
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
+  MODIFY `PunishmentDurationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `space_qr_code`
 --
 ALTER TABLE `space_qr_code`
   MODIFY `QRCodeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+<<<<<<< HEAD
+-- AUTO_INCREMENT for table `summon`
+--
+ALTER TABLE `summon`
+  MODIFY `SummonID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `summonqrcode`
+--
+ALTER TABLE `summonqrcode`
+=======
+-- AUTO_INCREMENT for table `Summon`
+--
+ALTER TABLE `Summon`
+  MODIFY `SummonID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `SummonQRCode`
+--
+ALTER TABLE `SummonQRCode`
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
+  MODIFY `QRCodeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
@@ -503,30 +610,31 @@ ALTER TABLE `space_qr_code`
 -- Constraints for table `booking`
 --
 ALTER TABLE `booking`
-  ADD CONSTRAINT `booking_ibfk_1` FOREIGN KEY (`StudentID`) REFERENCES `student` (`StudentID`),
-  ADD CONSTRAINT `booking_ibfk_2` FOREIGN KEY (`ParkingSpaceID`) REFERENCES `parking_space` (`ParkingSpaceID`);
+  ADD CONSTRAINT `booking_ibfk_2` FOREIGN KEY (`ParkingSpaceID`) REFERENCES `parking_space` (`ParkingSpaceID`),
+  ADD CONSTRAINT `fk_booking_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`);
 
 --
 -- Constraints for table `bookingqrcode`
 --
 ALTER TABLE `bookingqrcode`
-  ADD CONSTRAINT `bookingqrcode_ibfk_1` FOREIGN KEY (`BookingID`) REFERENCES `booking` (`BookingID`),
-  ADD CONSTRAINT `bookingqrcode_ibfk_2` FOREIGN KEY (`GeneratedBy`) REFERENCES `user` (`UserID`);
+  ADD CONSTRAINT `bookingqrcode_ibfk_1` FOREIGN KEY (`BookingID`) REFERENCES `booking` (`BookingID`);
 
 --
--- Constraints for table `demerit`
+-- Constraints for table `Demerit`
 --
+<<<<<<< HEAD
 ALTER TABLE `demerit`
-  ADD CONSTRAINT `demerit_ibfk_1` FOREIGN KEY (`StudentID`) REFERENCES `student` (`StudentID`),
-  ADD CONSTRAINT `demerit_ibfk_2` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`);
+  ADD CONSTRAINT `fk_demerit_summon` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`) ON DELETE CASCADE ON UPDATE CASCADE;
+=======
+ALTER TABLE `Demerit`
+  ADD CONSTRAINT `fk_demerit_summon` FOREIGN KEY (`SummonID`) REFERENCES `Summon` (`SummonID`) ON DELETE CASCADE ON UPDATE CASCADE;
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
 
 --
 -- Constraints for table `parkinglog`
 --
 ALTER TABLE `parkinglog`
-  ADD CONSTRAINT `parkinglog_ibfk_1` FOREIGN KEY (`BookingID`) REFERENCES `booking` (`BookingID`),
-  ADD CONSTRAINT `parkinglog_ibfk_2` FOREIGN KEY (`StudentID`) REFERENCES `student` (`StudentID`),
-  ADD CONSTRAINT `parkinglog_ibfk_3` FOREIGN KEY (`ParkingSpaceID`) REFERENCES `parking_space` (`ParkingSpaceID`);
+  ADD CONSTRAINT `parkinglog_ibfk_1` FOREIGN KEY (`BookingID`) REFERENCES `booking` (`BookingID`);
 
 --
 -- Constraints for table `parking_space`
@@ -536,15 +644,23 @@ ALTER TABLE `parking_space`
   ADD CONSTRAINT `parking_space_ibfk_2` FOREIGN KEY (`StatusID`) REFERENCES `space_status` (`StatusID`);
 
 --
--- Constraints for table `punishmentduration`
+-- Constraints for table `PunishmentDuration`
 --
+<<<<<<< HEAD
 ALTER TABLE `punishmentduration`
-  ADD CONSTRAINT `punishmentduration_ibfk_1` FOREIGN KEY (`StudentID`) REFERENCES `student` (`StudentID`);
+  ADD CONSTRAINT `fk_duration_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`),
+  ADD CONSTRAINT `fk_punishment_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE;
+=======
+ALTER TABLE `PunishmentDuration`
+  ADD CONSTRAINT `fk_duration_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`),
+  ADD CONSTRAINT `fk_punishment_user` FOREIGN KEY (`UserID`) REFERENCES `User` (`UserID`) ON DELETE CASCADE ON UPDATE CASCADE;
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
 
 --
 -- Constraints for table `securitystaff`
 --
 ALTER TABLE `securitystaff`
+  ADD CONSTRAINT `fk_securitystaff_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`),
   ADD CONSTRAINT `securitystaff_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`);
 
 --
@@ -561,25 +677,39 @@ ALTER TABLE `student`
   ADD CONSTRAINT `student_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`);
 
 --
--- Constraints for table `summon`
+-- Constraints for table `Summon`
 --
-ALTER TABLE `summon`
+ALTER TABLE `Summon`
+  ADD CONSTRAINT `fk_summon_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`),
+<<<<<<< HEAD
+  ADD CONSTRAINT `fk_summon_vehicle` FOREIGN KEY (`VehicleID`) REFERENCES `vehicle` (`VehicleID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_summon_vehicle_fix` FOREIGN KEY (`VehicleID`) REFERENCES `vehicle` (`VehicleID`) ON DELETE CASCADE ON UPDATE CASCADE,
+=======
+  ADD CONSTRAINT `fk_summon_vehicle` FOREIGN KEY (`VehicleID`) REFERENCES `Vehicle` (`VehicleID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_summon_vehicle_fix` FOREIGN KEY (`VehicleID`) REFERENCES `Vehicle` (`VehicleID`) ON DELETE CASCADE ON UPDATE CASCADE,
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
   ADD CONSTRAINT `summon_ibfk_1` FOREIGN KEY (`VehicleID`) REFERENCES `vehicle` (`VehicleID`),
-  ADD CONSTRAINT `summon_ibfk_2` FOREIGN KEY (`SStaffID`) REFERENCES `securitystaff` (`SStaffID`),
   ADD CONSTRAINT `summon_ibfk_3` FOREIGN KEY (`ViolationTypeID`) REFERENCES `violationtype` (`ViolationTypeID`);
 
 --
--- Constraints for table `summonqrcode`
+-- Constraints for table `SummonQRCode`
 --
+<<<<<<< HEAD
 ALTER TABLE `summonqrcode`
-  ADD CONSTRAINT `summonqrcode_ibfk_1` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`);
+  ADD CONSTRAINT `fk_qrcode_summon` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `summonqrcode_ibfk_1` FOREIGN KEY (`SummonID`) REFERENCES `summon` (`SummonID`) ON DELETE CASCADE ON UPDATE CASCADE;
+=======
+ALTER TABLE `SummonQRCode`
+  ADD CONSTRAINT `fk_qrcode_summon` FOREIGN KEY (`SummonID`) REFERENCES `Summon` (`SummonID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `summonqrcode_ibfk_1` FOREIGN KEY (`SummonID`) REFERENCES `Summon` (`SummonID`) ON DELETE CASCADE ON UPDATE CASCADE;
+>>>>>>> 8db81009874bf273e061a4c974e8a42cafdee4ad
 
 --
 -- Constraints for table `vehicle`
 --
 ALTER TABLE `vehicle`
-  ADD CONSTRAINT `vehicle_ibfk_1` FOREIGN KEY (`StudentID`) REFERENCES `student` (`StudentID`),
-  ADD CONSTRAINT `vehicle_ibfk_2` FOREIGN KEY (`SStaffID`) REFERENCES `securitystaff` (`SStaffID`);
+  ADD CONSTRAINT `fk_vehicle_approvedby` FOREIGN KEY (`ApprovedBy`) REFERENCES `user` (`UserID`),
+  ADD CONSTRAINT `fk_vehicle_user` FOREIGN KEY (`UserID`) REFERENCES `user` (`UserID`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

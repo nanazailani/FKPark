@@ -14,7 +14,7 @@ $studentID = $_SESSION['UserID'];
 
 // Fetch all vehicles owned by the student
 $vehicles = mysqli_query($conn, "
-    SELECT * FROM Vehicle WHERE StudentID = '$studentID'
+    SELECT * FROM Vehicle WHERE UserID = '$studentID'
 ");
 ?>
 <!DOCTYPE html>

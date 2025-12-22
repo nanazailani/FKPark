@@ -1,6 +1,10 @@
 <?php
 require '../config.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
+//clear cache
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 $id = $_GET['id'] ?? '';
 if (!$id) { header('Location: manage_parking_area.php'); exit; }
@@ -28,4 +32,16 @@ $area = $stmt->get_result()->fetch_assoc();
     <a class="btn" href="manage_parking_area.php">Back</a>
   </div>
 </div></div>
+<script>
+            //pageshow - event bila page show. e.g - tekan background
+            window.addEventListener("pageshow", function (event) 
+            {
+                //true kalau the page is cached 
+                if (event.persisted) 
+                {
+                    //page reload
+                    window.location.reload();
+                }
+            });
+        </script>
 </body></html>

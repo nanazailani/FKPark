@@ -30,9 +30,10 @@ $data = mysqli_fetch_assoc($result);
 $enf = mysqli_query($conn, "
     SELECT P.*
     FROM PunishmentDuration P
-    LEFT JOIN Vehicle V ON P.StudentID = V.StudentID
-    WHERE V.VehicleID = '{$data['VehicleID']}'
-    ORDER BY P.PunishmentDurationID DESC
+    JOIN Vehicle V ON V.VehicleID = '{$data['VehicleID']}'
+    WHERE P.UserID = V.UserID
+      AND P.Status = 'Active'
+    ORDER BY P.StartDate DESC
     LIMIT 1
 ");
 
@@ -265,11 +266,9 @@ if (isset($_POST['update'])) {
         </div>
         <script>
             //pageshow - event bila page show. e.g - tekan background
-            window.addEventListener("pageshow", function (event) 
-            {
+            window.addEventListener("pageshow", function(event) {
                 //true kalau the page is cached 
-                if (event.persisted) 
-                {
+                if (event.persisted) {
                     //page reload
                     window.location.reload();
                 }
