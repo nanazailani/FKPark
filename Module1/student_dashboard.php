@@ -3,6 +3,9 @@ session_start();
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once '../config.php';
 
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
@@ -14,17 +17,17 @@ $userID = $_SESSION['UserID'];
 
 // Count student vehicles
 $totalVehicles = mysqli_fetch_assoc(mysqli_query($conn, "
-    SELECT COUNT(*) AS total FROM Vehicle WHERE StudentID = '$userID'
+    SELECT COUNT(*) AS total FROM Vehicle WHERE UserID = '$userID'
 "))['total'];
 
 // Count approved vehicles
 $approved = mysqli_fetch_assoc(mysqli_query($conn, "
-    SELECT COUNT(*) AS total FROM Vehicle WHERE StudentID = '$userID' AND ApprovalStatus = 'Approved'
+    SELECT COUNT(*) AS total FROM Vehicle WHERE UserID = '$userID' AND ApprovalStatus = 'Approved'
 "))['total'];
 
 // Count pending vehicles
 $pending = mysqli_fetch_assoc(mysqli_query($conn, "
-    SELECT COUNT(*) AS total FROM Vehicle WHERE StudentID = '$userID' AND ApprovalStatus = 'Pending'
+    SELECT COUNT(*) AS total FROM Vehicle WHERE UserID = '$userID' AND ApprovalStatus = 'Pending'
 "))['total'];
 ?>
 <!DOCTYPE html>
@@ -53,7 +56,7 @@ $pending = mysqli_fetch_assoc(mysqli_query($conn, "
             text-align: center;
             color: #003A75;
             font-weight: 600;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
             animation: fadeInUp 0.6s ease forwards;
             opacity: 0;
         }
@@ -65,8 +68,15 @@ $pending = mysqli_fetch_assoc(mysqli_query($conn, "
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .info-box {
@@ -89,7 +99,7 @@ $pending = mysqli_fetch_assoc(mysqli_query($conn, "
         <div class="header">🧑‍🎓 Student Dashboard</div>
 
         <div class="info-box">
-            Welcome back, <strong><?= $_SESSION['UserName']; ?></strong>!  
+            Welcome back, <strong><?= $_SESSION['UserName']; ?></strong>!
             Manage your vehicle registration and check approval status here.
         </div>
 
@@ -118,15 +128,15 @@ $pending = mysqli_fetch_assoc(mysqli_query($conn, "
         </div>
 
     </div>
-<script>
-    // If the page was loaded from cache (e.g., user pressed Back)
-    window.addEventListener("pageshow", function (event) {
-        if (event.persisted) {
-            // Force a full reload
-            window.location.reload();
-        }
-    });
-</script>
+    <script>
+        // If the page was loaded from cache (e.g., user pressed Back)
+        window.addEventListener("pageshow", function(event) {
+            if (event.persisted) {
+                // Force a full reload
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
 
 </html>

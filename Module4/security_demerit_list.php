@@ -5,6 +5,9 @@ session_start();
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once '../config.php';
 
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
@@ -22,19 +25,19 @@ SELECT
         FROM Vehicle V2
         LEFT JOIN Summon S2 ON V2.VehicleID = S2.VehicleID
         LEFT JOIN ViolationType VT ON S2.ViolationTypeID = VT.ViolationTypeID
-        WHERE V2.StudentID = U.UserID
+        WHERE V2.UserID = U.UserID
     ) AS TotalPoints,
     
     (SELECT StartDate FROM PunishmentDuration 
-        WHERE StudentID = U.UserID
+        WHERE UserID = U.UserID
         ORDER BY PunishmentDurationID DESC LIMIT 1) AS StartDate,
 
     (SELECT EndDate FROM PunishmentDuration 
-        WHERE StudentID = U.UserID
+        WHERE UserID = U.UserID
         ORDER BY PunishmentDurationID DESC LIMIT 1) AS EndDate,
 
     (SELECT Status FROM PunishmentDuration
-        WHERE StudentID = U.UserID
+        WHERE UserID = U.UserID
         ORDER BY PunishmentDurationID DESC LIMIT 1) AS PunishmentStatus
     
 FROM User U

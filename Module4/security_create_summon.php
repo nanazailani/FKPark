@@ -78,27 +78,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 1. Get StudentID from Vehicle
     $qStudent = mysqli_query(
         $conn,
-        "SELECT StudentID FROM Vehicle WHERE VehicleID='$vehicleID' LIMIT 1"
+        "SELECT UserID FROM Vehicle WHERE VehicleID='$vehicleID' LIMIT 1"
     );
     $studentRow = mysqli_fetch_assoc($qStudent);
-    $studentID = $studentRow['StudentID'];
+    $userID = $studentRow['UserID'];
 
     // 2. Recalculate total demerit points
     $qPts = mysqli_query($conn, "
-        SELECT SUM(VT.DemeritPoints) AS totalPts
+        SELECT SUM(VT.ViolationPoints) AS totalPts
         FROM Summon S
         LEFT JOIN ViolationType VT ON S.ViolationTypeID = VT.ViolationTypeID
         LEFT JOIN Vehicle V ON S.VehicleID = V.VehicleID
-        WHERE V.StudentID='$studentID'
+        WHERE V.UserID='$userID'
     ");
     $ptsRow = mysqli_fetch_assoc($qPts);
     $totalPts = intval($ptsRow['totalPts']);
 
     // Update Student table with new total demerit points
     mysqli_query($conn, "
-        UPDATE Student 
+        UPDATE User 
         SET TotalDemeritPoints = '$totalPts'
-        WHERE StudentID = '$studentID'
+        WHERE UserID = '$userID'
     ");
 
     // 3. Determine enforcement type + duration
@@ -122,8 +122,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 4. Insert enforcement record (keep history)
     mysqli_query($conn, "
-        INSERT INTO Enforcement (StudentID, EnforcementType, StartDate, EndDate, Status)
-        VALUES ('$studentID', '$enforcementType', '$startDate', $endDateSQL, 'Active')
+        INSERT INTO Enforcement (UserID, EnforcementType, StartDate, EndDate, Status)
+        VALUES ('$userID', '$enforcementType', '$startDate', $endDateSQL, 'Active')
     ");
     // === ENFORCEMENT LOGIC END ===
 
@@ -237,36 +237,43 @@ $violations = mysqli_query($conn, "SELECT * FROM ViolationType");
         }
     </style>
     <script>
-        function searchPlate() {
-            const plate = document.getElementById("plateNumber").value.trim();
+        let searchTimeout = null;
 
-            if (plate.length < 1) return;
+        document.addEventListener("DOMContentLoaded", function() {
+            const plateInput = document.getElementById("plateNumber");
 
-            fetch("search_vehicle.php?plate=" + encodeURIComponent(plate))
-                .then(res => res.json())
-                .then(data => {
-                    const box = document.getElementById("student-info-box");
+            plateInput.addEventListener("input", function() {
+                clearTimeout(searchTimeout);
 
-                    if (data.status === "success") {
-                        box.style.display = "block";
-                        box.innerHTML = `
-    <p><b>Name:</b> ${data.data.UserName}</p>
-    <p><b>Student ID:</b> ${data.data.UserID}</p>
-    <p><b>Program:</b> ${data.data.StudentProgram}</p>
-    <p><b>Year:</b> ${data.data.StudentYear}</p>
-    <p><b>Total Demerit:</b> ${data.data.TotalDemeritPoints}</p>
-    <p><b>Enforcement:</b> ${data.data.EnforcementStatus}</p>
-`;
+                searchTimeout = setTimeout(() => {
+                    const plate = plateInput.value.trim();
+                    if (plate.length < 3) return;
 
-                        // CRITICAL: Fill hidden input inside form
-                        document.getElementById("vehicleID").value = data.data.VehicleID;
-                    } else {
-                        box.style.display = "block";
-                        box.innerHTML = "<b>No vehicle found.</b>";
-                        document.getElementById("vehicleID").value = "";
-                    }
-                });
-        }
+                    fetch("search_vehicle.php?plate=" + encodeURIComponent(plate))
+                        .then(res => res.json())
+                        .then(data => {
+                            const box = document.getElementById("student-info-box");
+                            box.style.display = "block";
+
+                            if (data.status === "success" && data.data) {
+                                box.innerHTML = `
+                                    <p><b>Name:</b> ${data.data.UserName ?? "-"}</p>
+                                    <p><b>User ID:</b> ${data.data.UserID ?? "-"}</p>
+                                    <p><b>Program:</b> ${data.data.StudentProgram ?? "-"}</p>
+                                    <p><b>Year:</b> ${data.data.StudentYear ?? "-"}</p>
+                                    <p><b>Total Demerit:</b> ${data.data.TotalDemeritPoints ?? 0}</p>
+                                    <p><b>Enforcement:</b> ${data.data.EnforcementStatus ?? "None"}</p>
+                                `;
+                                document.getElementById("vehicleID").value = data.data.VehicleID ?? "";
+                            } else {
+                                box.innerHTML = "<b>No vehicle found for this plate.</b>";
+                                document.getElementById("vehicleID").value = "";
+                            }
+                        })
+                        .catch(err => console.error(err));
+                }, 400);
+            });
+        });
     </script>
 </head>
 
@@ -285,7 +292,7 @@ $violations = mysqli_query($conn, "SELECT * FROM ViolationType");
             <form method="POST" enctype="multipart/form-data">
 
                 <label>Plate Number</label>
-                <input type="text" id="plateNumber" name="plateNumber" onkeyup="searchPlate()" required>
+                <input type="text" id="plateNumber" name="plateNumber" required>
                 <div id="student-info-box"></div>
 
                 <!-- MUST BE INSIDE FORM -->
@@ -296,7 +303,7 @@ $violations = mysqli_query($conn, "SELECT * FROM ViolationType");
                     <option value="">Select violation</option>
                     <?php while ($vt = mysqli_fetch_assoc($violations)): ?>
                         <option value="<?= $vt['ViolationTypeID'] ?>">
-                            <?= $vt['ViolationName'] ?> (<?= $vt['DemeritPoints'] ?> pts)
+                            <?= $vt['ViolationName'] ?> (<?= $vt['ViolationPoints'] ?> pts)
                         </option>
                     <?php endwhile; ?>
                 </select>

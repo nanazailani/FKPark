@@ -18,7 +18,7 @@ $userID = $_SESSION['UserID'];
 /* --------------------------------
    FETCH STUDENT RECORD
 ----------------------------------*/
-$sql = "SELECT * FROM Student WHERE StudentID = '$userID'";
+$sql = "SELECT * FROM User WHERE UserID = '$userID'";
 $result = mysqli_query($conn, $sql);
 $student = mysqli_fetch_assoc($result);
 
@@ -30,7 +30,7 @@ $sqlPoints = "
     FROM Summon s
     JOIN ViolationType vt ON s.ViolationTypeID = vt.ViolationTypeID
     JOIN Vehicle v ON s.VehicleID = v.VehicleID
-    WHERE v.StudentID = '$userID'
+    WHERE v.UserID = '$userID'
 ";
 $resPoints = mysqli_query($conn, $sqlPoints);
 $rowPoints = mysqli_fetch_assoc($resPoints);
@@ -56,7 +56,7 @@ $sqlSummons = "
     FROM Summon s
     JOIN Vehicle v ON s.VehicleID = v.VehicleID
     JOIN ViolationType vt ON s.ViolationTypeID = vt.ViolationTypeID
-    WHERE v.StudentID = '$userID' $filterQuery
+    WHERE v.UserID = '$userID' $filterQuery
     ORDER BY s.SummonDate DESC, s.SummonTime DESC
 ";
 $summons = mysqli_query($conn, $sqlSummons);
@@ -73,7 +73,7 @@ if ($totalPoints < 20) {
     $sqlPunish = "
         SELECT *
         FROM PunishmentDuration
-        WHERE StudentID = '$userID'
+        WHERE UserID = '$userID'
         ORDER BY PunishmentDurationID DESC
         LIMIT 1
     ";
@@ -181,7 +181,7 @@ if ($totalPoints < 20) {
                     <span class="detail-label">Vehicle:</span>
                     <span class="detail-value">
                         <?php
-                        $vehQuery = mysqli_query($conn, "SELECT PlateNumber FROM Vehicle WHERE StudentID = '$userID' LIMIT 1");
+                        $vehQuery = mysqli_query($conn, "SELECT PlateNumber FROM Vehicle WHERE UserID = '$userID' LIMIT 1");
                         $vehRow = mysqli_fetch_assoc($vehQuery);
                         echo $vehRow ? $vehRow['PlateNumber'] : "No vehicle registered";
                         ?>

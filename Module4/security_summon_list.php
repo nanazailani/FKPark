@@ -3,6 +3,9 @@ session_start();
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once '../config.php';
 
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
@@ -25,10 +28,10 @@ $sql = "
         S.Location,
         S.SummonStatus,
         U.UserName AS StudentName,
-        V.StudentID
+        U.UserID AS StudentID
     FROM Summon S
     LEFT JOIN Vehicle V ON S.VehicleID = V.VehicleID
-    LEFT JOIN User U ON V.StudentID = U.UserID
+    LEFT JOIN User U ON V.UserID = U.UserID
     ORDER BY S.SummonID DESC
 ";
 

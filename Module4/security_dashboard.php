@@ -3,6 +3,9 @@ session_start();
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once '../config.php';
 
 
@@ -88,7 +91,7 @@ $resTop = mysqli_query($conn, "
         COALESCE(SUM(VT.ViolationPoints),0) AS TotalPoints
     FROM Summon S
     JOIN Vehicle V ON S.VehicleID = V.VehicleID
-    JOIN User U    ON V.StudentID = U.UserID
+    JOIN User U    ON V.UserID = U.UserID
     LEFT JOIN ViolationType VT ON S.ViolationTypeID = VT.ViolationTypeID
     GROUP BY U.UserID, U.UserName
     HAVING SummonCount > 0
