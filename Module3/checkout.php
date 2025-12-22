@@ -18,19 +18,19 @@ if ($LogID === '') {
 }
 
 // ===========================================
-// FIXED QUERY — CORRECT TABLE NAMES
+// FIXED QUERY — JOIN IKUT DATABASE SEBENAR
 // ===========================================
 $sql = "
     SELECT 
         l.*,
         b.BookingID,
-        ps.ParkingSpaceID,
+        b.ParkingSpaceID,
         ps.SpaceCode,
         pa.AreaName
     FROM parkinglog l
-    JOIN parking_space ps ON l.ParkingSpaceID = ps.ParkingSpaceID
+    JOIN booking b        ON l.BookingID = b.BookingID
+    JOIN parking_space ps ON b.ParkingSpaceID = ps.ParkingSpaceID
     JOIN parking_area pa  ON ps.ParkingAreaID = pa.ParkingAreaID
-    LEFT JOIN booking b   ON l.BookingID = b.BookingID
     WHERE l.LogID = '$LogID'
 ";
 

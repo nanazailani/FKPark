@@ -23,42 +23,37 @@
 
 /* Modern white card box with left blue bar */
 .form-box, .info-card {
-    background: rgba(255, 255, 255, 0.92);
-    padding: 28px 32px;
-    border-radius: 22px;
-    width: 10%;
-    max-width: 800px;
-    min-width: 320px;
+  width: 93%;
+    margin: 20px 0;   /* sama spacing dgn header */
+    
+    background: rgba(255, 255, 255, 0.96);
+    padding: 36px 42px;
 
-    margin: 0 auto 30px auto;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.10);
+    border-radius: 15px;          /* sama style header */
     border-left: 8px solid #5B9BFF;
 
-    transition: 0.25s ease-in-out;
+    box-shadow:
+        0 8px 22px rgba(0, 0, 0, 0.12),
+        0 0 18px rgba(91, 155, 255, 0.18);
 
-    border-left: 8px solid #5B9BFF;
-
-    box-shadow: 
-        0 6px 20px rgba(0, 0, 0, 0.10),
-        0 0 12px rgba(91, 155, 255, 0.15);
-
-    backdrop-filter: blur(4px);
-    transition: 0.25s ease-in-out;
+    transition: all 0.3s ease;
 }
 
 /* Hover effect — modern floating feel */
 .form-box:hover, .info-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 
-        0 10px 25px rgba(0, 0, 0, 0.15),
-        0 0 18px rgba(91, 155, 255, 0.25);
+     transform: translateY(-3px);
+    box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.16),
+        0 0 26px rgba(91, 155, 255, 0.28);
 }
+
+
 
 .list-box {
     background: #ffffff;
     padding: 25px;
     border-radius: 20px;
-    width: 85%;
+    width: 95%;
     box-shadow: 0 3px 10px rgba(0,0,0,0.08);
     border-left: 8px solid #5B9BFF;
     margin-bottom: 25px;
@@ -377,3 +372,66 @@ table tr:nth-child(even) {
 .btn-viewqr:hover {
     background: #3279FF;
 }
+
+/* ===============================
+   CUSTOM MODAL POPUP (GLOBAL)
+=============================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-box {
+    background: #ffffff;
+    padding: 28px 34px;
+    border-radius: 18px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    animation: popIn 0.25s ease;
+}
+
+.modal-box h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.modal-box p {
+    margin: 0;
+    font-size: 15px;
+    color: #555;
+}
+
+.modal-box button {
+    margin-top: 20px;
+    padding: 10px 26px;
+    background: #5B9BFF;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.modal-box button:hover {
+    background: #4a8cff;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+

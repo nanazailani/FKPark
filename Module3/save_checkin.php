@@ -11,18 +11,38 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $BookingID        = $_POST['BookingID'] ?? '';
-$StudentID        = $_POST['StudentID'] ?? '';
 $ParkingSpaceID   = $_POST['ParkingSpaceID'] ?? '';
 $ExpectedDuration = (int)($_POST['ExpectedDuration'] ?? 0);
 
-if ($BookingID === '' || $StudentID === '' || $ParkingSpaceID === '' || $ExpectedDuration <= 0) {
+if ($BookingID === '' || $ParkingSpaceID === '' || $ExpectedDuration <= 0) {
     echo "<script>alert('Invalid check-in data.'); window.history.back();</script>";
     exit();
 }
 
-// =======================================
-// GENERATE LogID (LG001, LG002…)
-// =======================================
+/* ======================================================
+   1. BLOCK DOUBLE CHECK-IN
+====================================================== */
+$checkSql = "
+    SELECT LogID 
+    FROM parkinglog 
+    WHERE BookingID = '$BookingID'
+      AND CheckOutTime IS NULL
+    LIMIT 1
+";
+
+$checkResult = mysqli_query($conn, $checkSql);
+
+if (mysqli_num_rows($checkResult) > 0) {
+    echo "<script>
+            alert('You have already checked in for this booking.');
+            window.location.href='booking_list.php';
+          </script>";
+    exit();
+}
+
+/* ======================================================
+   2. GENERATE LogID
+====================================================== */
 $idQuery  = "SELECT MAX(LogID) AS lastID FROM parkinglog";
 $idResult = mysqli_query($conn, $idQuery);
 $idRow    = mysqli_fetch_assoc($idResult);
@@ -31,48 +51,41 @@ $num  = ($idRow && $idRow['lastID']) ? (int)substr($idRow['lastID'], 2) + 1 : 1;
 $LogID = 'LG' . str_pad($num, 3, '0', STR_PAD_LEFT);
 $now   = date('Y-m-d H:i:s');
 
-// =======================================
-// INSERT INTO parkinglog
-// =======================================
+/* ======================================================
+   3. INSERT parkinglog
+====================================================== */
 $insertSql = "
-    INSERT INTO parkinglog 
-    (LogID, BookingID, StudentID, ParkingSpaceID, CheckInTime, ExpectedDuration)
-    VALUES 
-    ('$LogID', '$BookingID', '$StudentID', '$ParkingSpaceID', '$now', $ExpectedDuration)
+    INSERT INTO parkinglog
+    (LogID, BookingID, CheckInTime, ExpectedDuration)
+    VALUES
+    ('$LogID', '$BookingID', '$now', $ExpectedDuration)
 ";
 
 if (!mysqli_query($conn, $insertSql)) {
     die('Database error (log insert): ' . mysqli_error($conn));
 }
 
-// =======================================
-// UPDATE BOOKING STATUS → Active
-// =======================================
-$updBooking = "
+/* ======================================================
+   4. UPDATE booking status → Active
+====================================================== */
+mysqli_query($conn, "
     UPDATE booking 
-    SET Status = 'Active'
-    WHERE BookingID = '$BookingID'
-";
-mysqli_query($conn, $updBooking);
+    SET Status='Active'
+    WHERE BookingID='$BookingID'
+");
 
-// =======================================
-// UPDATE PARKING SPACE STATUS
-// =======================================
-$occupiedStatus = 'ST02'; // Occupied
+/* ======================================================
+   5. UPDATE parking space status
+====================================================== */
+mysqli_query($conn, "
+    UPDATE parking_space
+    SET StatusID='ST02'
+    WHERE ParkingSpaceID='$ParkingSpaceID'
+");
 
-$updSpace = "
-    UPDATE parking_space 
-    SET StatusID = '$occupiedStatus'
-    WHERE ParkingSpaceID = '$ParkingSpaceID'
-";
-
-if (!mysqli_query($conn, $updSpace)) {
-    die('Database error (space update): ' . mysqli_error($conn));
-}
-
-// =======================================
-// REDIRECT TO CHECKOUT
-// =======================================
+/* ======================================================
+   6. REDIRECT TO CHECKOUT
+====================================================== */
 header("Location: checkout.php?log=" . urlencode($LogID));
 exit();
 ?>

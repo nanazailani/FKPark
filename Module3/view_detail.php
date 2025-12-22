@@ -18,7 +18,7 @@ if (!$BookingID) {
 }
 
 // =====================================
-// FIXED SQL — CORRECT TABLE NAMES
+// GET BOOKING DETAILS (FIXED)
 // =====================================
 $sql = "
     SELECT 
@@ -27,7 +27,7 @@ $sql = "
         ps.SpaceCode, 
         pa.AreaName
     FROM booking b
-    JOIN student s ON b.StudentID = s.StudentID
+    JOIN student s ON b.UserID = s.UserID
     JOIN parking_space ps ON b.ParkingSpaceID = ps.ParkingSpaceID
     JOIN parking_area pa ON ps.ParkingAreaID = pa.ParkingAreaID
     WHERE b.BookingID = '$BookingID'
@@ -58,7 +58,6 @@ $qrSQL = "
 
 $qrResult = mysqli_query($conn, $qrSQL);
 $qrData = mysqli_fetch_assoc($qrResult);
-
 ?>
 <!DOCTYPE html>
 <html>

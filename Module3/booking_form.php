@@ -38,9 +38,9 @@ if (!$spaces) {
 <html>
 <head>
     <title>Parking Booking</title>
-    <link rel="stylesheet" href="_Module3CSS.css">
-    <link rel="stylesheet" href="../templates/student_style.css">
-</head>
+     <link rel="stylesheet" href="../templates/student_style.css">
+     <link rel="stylesheet" href="_Module3CSS.css">
+    </head>
 
 <body>
 

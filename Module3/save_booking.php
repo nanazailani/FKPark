@@ -14,7 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-$StudentID   = $_POST['StudentID'];
+// ===============================
+// GET USER ID
+// ===============================
+$UserID = $_SESSION['UserID'];
+
 $SpaceID     = $_POST['SpaceID'];
 $BookingDate = $_POST['BookingDate'];
 $StartTime   = $_POST['StartTime'];
@@ -55,23 +59,18 @@ $idQuery = "SELECT MAX(BookingID) AS lastID FROM booking";
 $idResult = mysqli_query($conn, $idQuery);
 $idRow = mysqli_fetch_assoc($idResult);
 
-if ($idRow['lastID']) {
-    $num = intval(substr($idRow['lastID'], 2)) + 1;
-} else {
-    $num = 1;
-}
-
+$num = ($idRow['lastID']) ? intval(substr($idRow['lastID'], 2)) + 1 : 1;
 $BookingID = 'BK' . str_pad($num, 3, '0', STR_PAD_LEFT);
 
 
 // ===============================
-// 3. INSERT BOOKING RECORD
+// 3. INSERT BOOKING
 // ===============================
 $insertBooking = "
     INSERT INTO booking
-    (BookingID, StudentID, ParkingSpaceID, BookingDate, StartTime, EndTime, Status, CreatedAt)
+    (BookingID, UserID, ParkingSpaceID, BookingDate, StartTime, EndTime, Status, CreatedAt)
     VALUES 
-    ('$BookingID', '$StudentID', '$SpaceID', '$BookingDate', '$StartTime', '$EndTime', 'Pending', NOW())
+    ('$BookingID', '$UserID', '$SpaceID', '$BookingDate', '$StartTime', '$EndTime', 'Pending', NOW())
 ";
 
 if (!mysqli_query($conn, $insertBooking)) {
@@ -83,34 +82,29 @@ if (!mysqli_query($conn, $insertBooking)) {
 // 4. GENERATE QR TOKEN
 // ===============================
 $qrToken = 'BOOK-' . $BookingID . '-' . bin2hex(random_bytes(4));
-
-$baseURL = "http://localhost/FKPark/FKPark/Module3/checkin.php?code=";
-$qrURL   = $baseURL . urlencode($qrToken);
+$qrURL   = "http://localhost/FKPark/Module3/checkin.php?code=" . urlencode($qrToken);
 
 
 // ===============================
-// 5. GENERATE QR IMAGE FILE
+// 5. GENERATE QR IMAGE
 // ===============================
-$qrFolder = __DIR__ . "/qr_codes/";  // Absolute server path
-$qrWebPath = "qr_codes/";            // Path for browser
-
+$qrFolder = __DIR__ . "/qr_codes/";
 if (!file_exists($qrFolder)) {
     mkdir($qrFolder, 0777, true);
 }
 
 $qrFile = $qrFolder . "qr_" . $BookingID . ".png";
-
 QRcode::png($qrURL, $qrFile, QR_ECLEVEL_L, 10);
 
 
 // ===============================
-// 6. INSERT INTO bookingqrcode (AUTO-ID)
+// 6. INSERT QR CODE (FIXED)
 // ===============================
 $insertQR = "
     INSERT INTO bookingqrcode
-    (BookingID, QRCodeData, GeneratedDate, GeneratedBy)
+    (BookingID, QRCodeData, GeneratedDate)
     VALUES
-    ('$BookingID', '$qrToken', NOW(), '$StudentID')
+    ('$BookingID', '$qrToken', NOW())
 ";
 
 if (!mysqli_query($conn, $insertQR)) {
@@ -119,9 +113,8 @@ if (!mysqli_query($conn, $insertQR)) {
 
 
 // ===============================
-// 7. REDIRECT TO SUCCESS PAGE
+// 7. REDIRECT
 // ===============================
 header("Location: booking_success.php?id=" . urlencode($BookingID));
 exit();
-
 ?>

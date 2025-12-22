@@ -7,7 +7,6 @@ header("Pragma: no-cache");
 header("Expires: 0");
 }
 ?>
-
 <div class="sidebar">
 
     <!-- PROFILE SECTION -->
@@ -34,3 +33,4 @@ header("Expires: 0");
      <a href="../Module4/student_demerit_points.php">⚠️ My Demerit Points</a>
     <a href="../Module1/logout.php" style="color:#B30000;">🚪 Logout</a>
 </div>
+

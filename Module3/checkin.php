@@ -21,24 +21,24 @@ if ($code === '') {
 
 // ================================
 // FETCH BOOKING USING bookingqrcode
-// FIXED TABLE NAMES
 // ================================
 $sql = "
     SELECT 
         b.BookingID,
-        b.StudentID,
+        b.UserID,
         b.ParkingSpaceID,
         b.BookingDate,
         b.StartTime,
         b.EndTime,
+        b.Status,              -- ✅ FIX HERE
         s.StudentProgram,
         ps.SpaceCode,
         pa.AreaName
     FROM bookingqrcode q
-    JOIN booking b              ON q.BookingID = b.BookingID
-    JOIN student s              ON b.StudentID = s.StudentID
-    JOIN parking_space ps       ON b.ParkingSpaceID = ps.ParkingSpaceID
-    JOIN parking_area pa        ON ps.ParkingAreaID = pa.ParkingAreaID
+    JOIN booking b        ON q.BookingID = b.BookingID
+    JOIN student s        ON b.UserID = s.UserID
+    JOIN parking_space ps ON b.ParkingSpaceID = ps.ParkingSpaceID
+    JOIN parking_area pa  ON ps.ParkingAreaID = pa.ParkingAreaID
     WHERE q.QRCodeData = '$code'
 ";
 
@@ -54,6 +54,15 @@ $booking = mysqli_fetch_assoc($result);
 // If no booking found
 if (!$booking) {
     die("<div style='padding:20px;color:red;font-weight:bold;'>Invalid booking QR code.</div>");
+}
+
+// =======================================
+// BLOCK CHECK-IN IF NOT PENDING
+// =======================================
+if ($booking['Status'] !== 'Pending') {
+    die("<div style='padding:20px;color:red;font-weight:bold;'>
+        This booking has already been checked in or completed.
+    </div>");
 }
 ?>
 <!DOCTYPE html>
@@ -74,7 +83,7 @@ if (!$booking) {
     <div class="form-box">
 
         <p><strong>Booking ID:</strong> <?= htmlspecialchars($booking['BookingID']) ?></p>
-        <p><strong>Student ID:</strong> <?= htmlspecialchars($booking['StudentID']) ?></p>
+        <p><strong>User ID:</strong> <?= htmlspecialchars($booking['UserID']) ?></p>
 
         <p><strong>Car Park:</strong>
             <?= htmlspecialchars($booking['AreaName'] . ' - ' . $booking['SpaceCode']) ?>
@@ -90,7 +99,6 @@ if (!$booking) {
             <input type="number" name="ExpectedDuration" min="15" step="15" required>
 
             <input type="hidden" name="BookingID" value="<?= htmlspecialchars($booking['BookingID']) ?>">
-            <input type="hidden" name="StudentID" value="<?= htmlspecialchars($booking['StudentID']) ?>">
             <input type="hidden" name="ParkingSpaceID" value="<?= htmlspecialchars($booking['ParkingSpaceID']) ?>">
 
             <div class="button-row">

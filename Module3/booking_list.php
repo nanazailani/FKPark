@@ -15,7 +15,6 @@ $studentID = $_SESSION['UserID'];
 
 // ================================
 // RETRIEVE USER'S BOOKINGS + ACTIVE LOG
-// Correct table names: parking_space, parking_area
 // ================================
 $sql = "
     SELECT 
@@ -31,7 +30,7 @@ $sql = "
     LEFT JOIN parkinglog l 
         ON b.BookingID = l.BookingID 
         AND l.CheckOutTime IS NULL
-    WHERE b.StudentID = '$studentID'
+    WHERE b.UserID = '$studentID'
     ORDER BY 
         FIELD(b.Status, 'Pending', 'Active', 'Completed', 'Cancelled'),
         b.BookingID DESC
@@ -43,14 +42,14 @@ $bookings = mysqli_query($conn, $sql);
 if (!$bookings) {
     die("SQL ERROR: " . mysqli_error($conn));
 }
-
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <title>My Bookings</title>
-    <link rel="stylesheet" href="_Module3CSS.css">
+    
     <link rel="stylesheet" href="../templates/student_style.css">
+    <link rel="stylesheet" href="_Module3CSS.css">
 </head>
 
 <body>
@@ -87,11 +86,8 @@ if (!$bookings) {
             <tr data-status="<?= $row['Status'] ?>">
 
                 <td><?= $row['BookingID'] ?></td>
-
                 <td><?= $row['BookingDate'] ?></td>
-
                 <td><?= $row['StartTime'] ?> - <?= $row['EndTime'] ?></td>
-
                 <td><?= $row['AreaName'] ?> - <?= $row['SpaceCode'] ?></td>
 
                 <td>
@@ -107,17 +103,18 @@ if (!$bookings) {
                 </td>
 
                 <td>
-                    <?php if ($row['Status'] == "Pending" || $row['Status'] == "Active"): ?>
-                        <a href="view_detail.php?id=<?= $row['BookingID'] ?>" class="btn-viewqr">View QR</a>
-                    <?php else: ?>
-                        <span style="color:gray;">N/A</span>
-                    <?php endif; ?>
+                <?php if ($row['Status'] == 'Pending'): ?>
+                    <a href="view_detail.php?id=<?= $row['BookingID'] ?>" class="btn-viewqr">
+                        View QR
+                    </a>
+                <?php else: ?>
+                    <span style="color:gray;">N/A</span>
+                <?php endif; ?>
                 </td>
+
 
                 <td>
                     <?php if ($row['Status'] == 'Pending'): ?>
-
-                        <!-- PENDING = Edit + Cancel -->
                         <div class="action-buttons">
                             <a href="edit_booking.php?id=<?= $row['BookingID'] ?>" class="btn-edit">Edit</a>
                             <a href="cancel_booking.php?id=<?= $row['BookingID'] ?>"
@@ -126,16 +123,12 @@ if (!$bookings) {
                                 Cancel
                             </a>
                         </div>
-
                     <?php elseif ($row['Status'] == 'Active' && !empty($row['LogID'])): ?>
-
-                        <!-- ACTIVE = Checkout -->
                         <a href="checkout.php?log=<?= $row['LogID'] ?>"
                            class="btn-viewqr"
                            onclick="return confirm('Proceed to checkout this parking?');">
                            Checkout
                         </a>
-
                     <?php else: ?>
                         <span style="color:gray;">N/A</span>
                     <?php endif; ?>
@@ -143,7 +136,6 @@ if (!$bookings) {
 
             </tr>
             <?php endwhile; ?>
-
         </table>
 
     </div>
