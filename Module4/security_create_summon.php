@@ -1,41 +1,41 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 session_start();
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
-header("Expires: 0");
 require_once '../config.php';
-require_once 'phpqrcode/phpqrcode.php';
 
-if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
+// Only Security Staff can access (optional but recommended)
+if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] !== 'Security Staff') {
     header("Location: ../login.php");
     exit();
 }
 
-// Handle submission
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+// Load violations list
+$violations = mysqli_query($conn, "SELECT * FROM ViolationType");
 
-    // MUST exist now because hidden input is inside form
-    $vehicleID = $_POST['vehicleID'];
+// Handle summon creation
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $vehicleID = $_POST['vehicleID'] ?? '';
 
     if (empty($vehicleID)) {
         die("ERROR: No vehicle selected. Please search by plate number first.");
     }
 
-    $violationTypeID = $_POST['violationTypeID'];
-    $summonDate = $_POST['summonDate'];
-    $summonTime = $_POST['summonTime'];
-    $location = $_POST['location'];
+    $violationTypeID = $_POST['violationTypeID'] ?? '';
+    $summonDate = $_POST['summonDate'] ?? '';
+    $summonTime = $_POST['summonTime'] ?? '';
+    $location = $_POST['location'] ?? '';
 
     // evidence upload
     $uploadDir = "../uploads/";
-    $fileName = basename($_FILES["evidence"]["name"]);
+    $fileName = basename($_FILES["evidence"]["name"] ?? '');
     $serverPath = $uploadDir . $fileName;
-    $publicURL = "http://localhost/WebEng/FKPark/uploads/" . $fileName;
 
-    if (!empty($_FILES["evidence"]["name"])) {
+    // Build a public URL (adjust if your project base URL differs)
+    $publicURL = $fileName ? ("http://localhost/FKPark/uploads/" . $fileName) : "";
+
+    if ($fileName) {
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
         if (!move_uploaded_file($_FILES["evidence"]["tmp_name"], $serverPath)) {
             die("ERROR: Unable to upload evidence file. Check folder permissions.");
         }
@@ -45,93 +45,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         INSERT INTO Summon (VehicleID, ViolationTypeID, SummonDate, SummonTime, Location, Evidence, SummonStatus)
         VALUES ('$vehicleID', '$violationTypeID', '$summonDate', '$summonTime', '$location', '$publicURL', 'Unpaid')
     ";
-
     mysqli_query($conn, $sqlInsert);
-
     $summonID = mysqli_insert_id($conn);
 
-    // === GENERATE QR CODE ===
-    $qrFolder = "../uploads/qr/";
-
-    // Make folder if not exists
-    if (!is_dir($qrFolder)) {
-        mkdir($qrFolder, 0777, true);
-    }
-
-    $qrFilename = "summon_" . $summonID . ".png";
-    $qrFilepath = $qrFolder . $qrFilename;
-
-    // The data encoded inside the QR code
-    $qrData = "http://localhost/WebEng/FKPark/Module4/security_summon_view.php?id=" . $summonID;
-
-    // Generate PNG QR Code
-    QRcode::png($qrData, $qrFilepath, QR_ECLEVEL_L, 6);
-
-    // Save QR path into SummonQRCode table
-    mysqli_query($conn, "
-    INSERT INTO SummonQRCode (SummonID, QRCodeData)
-    VALUES ('$summonID', '$qrFilepath')
-");
-
-    // === ENFORCEMENT LOGIC START ===
-
-    // 1. Get StudentID from Vehicle
-    $qStudent = mysqli_query(
-        $conn,
-        "SELECT UserID FROM Vehicle WHERE VehicleID='$vehicleID' LIMIT 1"
-    );
-    $studentRow = mysqli_fetch_assoc($qStudent);
-    $userID = $studentRow['UserID'];
-
-    // 2. Recalculate total demerit points
-    $qPts = mysqli_query($conn, "
-        SELECT SUM(VT.ViolationPoints) AS totalPts
-        FROM Summon S
-        LEFT JOIN ViolationType VT ON S.ViolationTypeID = VT.ViolationTypeID
-        LEFT JOIN Vehicle V ON S.VehicleID = V.VehicleID
-        WHERE V.UserID='$userID'
-    ");
-    $ptsRow = mysqli_fetch_assoc($qPts);
-    $totalPts = intval($ptsRow['totalPts']);
-
-    // Update Student table with new total demerit points
-    mysqli_query($conn, "
-        UPDATE User 
-        SET TotalDemeritPoints = '$totalPts'
-        WHERE UserID = '$userID'
-    ");
-
-    // 3. Determine enforcement type + duration
-    $enforcementType = "";
-    $startDate = $summonDate;
-    $endDate = "NULL"; // default for permanent
-
-    if ($totalPts < 20) {
-        $enforcementType = "Warning";
-        $endDateSQL = "NULL";
-    } elseif ($totalPts < 50) {
-        $enforcementType = "Revoke 1 Semester";
-        $endDateSQL = "'" . date('Y-m-d', strtotime($startDate . ' +6 months')) . "'";
-    } elseif ($totalPts < 80) {
-        $enforcementType = "Revoke 2 Semesters";
-        $endDateSQL = "'" . date('Y-m-d', strtotime($startDate . ' +12 months')) . "'";
-    } else {
-        $enforcementType = "Revoke Permanent";
-        $endDateSQL = "NULL";
-    }
-
-    // 4. Insert enforcement record (keep history)
-    mysqli_query($conn, "
-        INSERT INTO Enforcement (UserID, EnforcementType, StartDate, EndDate, Status)
-        VALUES ('$userID', '$enforcementType', '$startDate', $endDateSQL, 'Active')
-    ");
-    // === ENFORCEMENT LOGIC END ===
-
+    // Optional redirect
     header("Location: security_summon_success.php?id=" . $summonID);
     exit();
 }
-
-$violations = mysqli_query($conn, "SELECT * FROM ViolationType");
 ?>
 <!DOCTYPE html>
 <html>
@@ -176,15 +96,8 @@ $violations = mysqli_query($conn, "SELECT * FROM ViolationType");
             margin-top: 10px;
         }
 
-        input[type="date"],
-        input[type="time"] {
-            display: block;
-            width: 100%;
-        }
-
         input[type="file"] {
             background: #fff;
-            border: 1px solid #ECCB7E;
         }
 
         #student-info-box {
@@ -216,61 +129,54 @@ $violations = mysqli_query($conn, "SELECT * FROM ViolationType");
             background: #FFBB22;
             transform: scale(1.03);
         }
-
-        #plateNumber {
-            border: 1px solid #FFD972;
-            background: #FFF7CD;
-        }
-
-        #plateNumber:focus {
-            outline: none;
-            border-color: #FFC93C;
-            background: #FFF3B8;
-        }
-
-        .center-wrapper {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding-right: 40px;
-            /* balances layout */
-        }
     </style>
-    <script>
-        let searchTimeout = null;
 
+    <script>
         document.addEventListener("DOMContentLoaded", function() {
             const plateInput = document.getElementById("plateNumber");
+            const infoBox = document.getElementById("student-info-box");
+            const vehicleInput = document.getElementById("vehicleID");
+
+            let searchTimeout = null;
 
             plateInput.addEventListener("input", function() {
                 clearTimeout(searchTimeout);
 
+                infoBox.style.display = "block";
+                infoBox.innerHTML = "Searching vehicle...";
+
                 searchTimeout = setTimeout(() => {
                     const plate = plateInput.value.trim();
-                    if (plate.length < 3) return;
+
+                    if (plate.length < 3) {
+                        infoBox.innerHTML = "Enter at least 3 characters.";
+                        vehicleInput.value = "";
+                        return;
+                    }
 
                     fetch("search_vehicle.php?plate=" + encodeURIComponent(plate))
                         .then(res => res.json())
                         .then(data => {
-                            const box = document.getElementById("student-info-box");
-                            box.style.display = "block";
-
                             if (data.status === "success" && data.data) {
-                                box.innerHTML = `
-                                    <p><b>Name:</b> ${data.data.UserName ?? "-"}</p>
-                                    <p><b>User ID:</b> ${data.data.UserID ?? "-"}</p>
-                                    <p><b>Program:</b> ${data.data.StudentProgram ?? "-"}</p>
-                                    <p><b>Year:</b> ${data.data.StudentYear ?? "-"}</p>
-                                    <p><b>Total Demerit:</b> ${data.data.TotalDemeritPoints ?? 0}</p>
-                                    <p><b>Enforcement:</b> ${data.data.EnforcementStatus ?? "None"}</p>
-                                `;
-                                document.getElementById("vehicleID").value = data.data.VehicleID ?? "";
+                                infoBox.innerHTML = `
+                                <p><b>Name:</b> ${data.data.UserName ?? "-"}</p>
+                                <p><b>User ID:</b> ${data.data.UserID ?? "-"}</p>
+                                <p><b>Program:</b> ${data.data.StudentProgram ?? "-"}</p>
+                                <p><b>Year:</b> ${data.data.StudentYear ?? "-"}</p>
+                                <p><b>Total Demerit:</b> ${data.data.TotalDemeritPoints ?? 0}</p>
+                                <p><b>Enforcement:</b> ${data.data.EnforcementStatus ?? "None"}</p>
+                            `;
+                                vehicleInput.value = data.data.VehicleID ?? "";
                             } else {
-                                box.innerHTML = "<b>No vehicle found for this plate.</b>";
-                                document.getElementById("vehicleID").value = "";
+                                infoBox.innerHTML = "No vehicle found for this plate.";
+                                vehicleInput.value = "";
                             }
                         })
-                        .catch(err => console.error(err));
+                        .catch(err => {
+                            console.error(err);
+                            infoBox.innerHTML = "Error searching vehicle.";
+                            vehicleInput.value = "";
+                        });
                 }, 400);
             });
         });
@@ -278,24 +184,19 @@ $violations = mysqli_query($conn, "SELECT * FROM ViolationType");
 </head>
 
 <body>
-
     <?php include '../templates/security_sidebar.php'; ?>
 
     <div class="main-content">
-        <div class="header">➕ Issue Summon</div>
+        <div class="header">+ Issue Summon</div>
 
         <div class="form-box">
-
             <h2>Search Vehicle</h2>
 
-            <!-- FORM START -->
             <form method="POST" enctype="multipart/form-data">
-
                 <label>Plate Number</label>
                 <input type="text" id="plateNumber" name="plateNumber" required>
                 <div id="student-info-box"></div>
 
-                <!-- MUST BE INSIDE FORM -->
                 <input type="hidden" name="vehicleID" id="vehicleID">
 
                 <label>Violation Type</label>
@@ -323,18 +224,7 @@ $violations = mysqli_query($conn, "SELECT * FROM ViolationType");
                 <button type="submit">Create Summon</button>
             </form>
         </div>
-
     </div>
-    <script>
-        //pageshow - event bila page show. e.g - tekan background
-        window.addEventListener("pageshow", function(event) {
-            //true kalau the page is cached 
-            if (event.persisted) {
-                //page reload
-                window.location.reload();
-            }
-        });
-    </script>
 </body>
 
 </html>

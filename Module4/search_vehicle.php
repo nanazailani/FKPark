@@ -1,4 +1,7 @@
 <?php
+
+
+header('Content-Type: application/json');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -22,13 +25,20 @@ $sql = "
 
         S.StudentProgram,
         S.StudentYear,
-        U.TotalDemeritPoints,
-        E.EnforcementType AS EnforcementStatus
+        COALESCE((
+            SELECT SUM(VT.ViolationPoints)
+            FROM Summon S2
+            LEFT JOIN ViolationType VT ON S2.ViolationTypeID = VT.ViolationTypeID
+            LEFT JOIN Vehicle V2 ON S2.VehicleID = V2.VehicleID
+            WHERE V2.UserID = U.UserID
+        ), 0) AS TotalDemeritPoints,
+        P.PunishmentType AS EnforcementStatus
 
     FROM Vehicle V
     LEFT JOIN User U ON V.UserID = U.UserID
     LEFT JOIN Student S ON U.UserID = S.UserID
-    LEFT JOIN Enforcement E ON U.UserID = E.UserID AND E.Status = 'Active'
+    LEFT JOIN PunishmentDuration P 
+        ON U.UserID = P.UserID AND P.Status = 'Active'
 
     WHERE TRIM(REPLACE(UPPER(V.PlateNumber), ' ', '')) = TRIM(REPLACE(UPPER('$plate'), ' ', ''))
 ";
@@ -44,3 +54,4 @@ echo json_encode([
     "status" => "success",
     "data" => mysqli_fetch_assoc($result)
 ]);
+exit();
