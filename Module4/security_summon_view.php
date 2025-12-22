@@ -46,12 +46,13 @@ $sql = "
         U.UserID,
         V.PlateNumber,
         VT.ViolationName,
-        VT.DemeritPoints,
+        D.DemeritPoints,
         VT.Description AS ViolationDescription
     FROM Summon S
     LEFT JOIN Vehicle V ON S.VehicleID = V.VehicleID
-    LEFT JOIN User U ON V.StudentID = U.UserID
+    LEFT JOIN User U ON V.UserID = U.UserID
     LEFT JOIN ViolationType VT ON S.ViolationTypeID = VT.ViolationTypeID
+    LEFT JOIN Demerit D ON D.SummonID = S.SummonID
     WHERE S.SummonID = '$summonID'
 ";
 
