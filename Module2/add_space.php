@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="form-actions">
 
-        <!-- ✅ FORCE GREEN BUTTON -->
+        <!-- GREEN BUTTON -->
         <button type="submit"
             style="
                 background:#4CAF50;
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <br><br>
 
-        <!-- ✅ FORCE RED BUTTON -->
+        <!-- RED BUTTON -->
         <a href="manage_spaces.php"
            style="
                 background:#E74C3C;

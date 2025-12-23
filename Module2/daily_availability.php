@@ -21,13 +21,13 @@ $res = $conn->query($sql);
 <meta charset="utf-8">
 <title>Daily Availability</title>
 
-<!-- USE THE SAME ADMIN STYLE -->
+
 <link rel="stylesheet" href="../templates/admin_style.css">
 </head>
 
 <body>
 
-<!-- CORRECT SIDEBAR INCLUDE -->
+
 <?php include_once('../templates/admin_sidebar.php'); ?>
 
 <div class="main-content">

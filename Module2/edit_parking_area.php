@@ -52,7 +52,7 @@ $area = $stmt->get_result()->fetch_assoc();
 <title>Edit Parking Area</title>
 <link rel="stylesheet" href="../templates/admin_style.css?v=3">
 
-<!-- SAME FORM STYLE AS ADD -->
+
 <style>
 .form-grid {
     display: grid;

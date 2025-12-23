@@ -6,7 +6,7 @@ header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-// Updated SQL: removed StatusID + removed JOIN + added AreaStatus
+
 $sql = "SELECT 
             pa.ParkingAreaID, 
             pa.AreaCode, 
@@ -62,7 +62,7 @@ $res = $conn->query($sql);
                         <td><?= htmlspecialchars($r['AreaType']) ?></td>
                         <td><?= intval($r['Capacity']) ?></td>
 
-                        <!-- Updated: show AreaStatus -->
+                        
                         <td><?= htmlspecialchars($r['AreaStatus']) ?></td>
 
                         <td>

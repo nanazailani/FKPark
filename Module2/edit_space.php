@@ -46,7 +46,7 @@ $statuses = $conn->query("SELECT StatusID, StatusName FROM space_status");
 <title>Edit Parking Space</title>
 <link rel="stylesheet" href="../templates/admin_style.css?v=3">
 
-<!-- SAME FORM STYLE AS ADD / EDIT AREA -->
+
 <style>
 .form-grid {
     display: grid;

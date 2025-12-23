@@ -8,7 +8,7 @@ header("Expires: 0");
 
 $id = $_GET['id'] ?? '';
 if ($id) {
-    // delete spaces first to prevent FK issues
+    // delete spaces 
     $stmt = $conn->prepare("DELETE FROM parking_space WHERE ParkingAreaID = ?");
     $stmt->bind_param('s', $id);
     $stmt->execute();

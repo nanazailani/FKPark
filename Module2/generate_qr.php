@@ -21,7 +21,7 @@ if (!is_dir($savePath)) mkdir($savePath, 0755, true);
 $pngName = 'qr_' . $id . '_' . time() . '.png';
 $pngFile = $savePath . $pngName;
 
-// Use Google QR (fallback-safe)
+// Google QR
 $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($code);
 $imageData = @file_get_contents($qrUrl);
 

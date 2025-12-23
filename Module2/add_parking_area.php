@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Add Parking Area</title>
 <link rel="stylesheet" href="../templates/admin_style.css?v=3">
 
-<!-- ✅ LOCAL FORM STYLE ONLY -->
+<!--  LOCAL FORM STYLE  -->
 <style>
 .form-grid {
     display: grid;
