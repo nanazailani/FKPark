@@ -1,13 +1,18 @@
 <?php
+// Enable error reporting supaya senang debug masa development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Start session untuk simpan info login student
 session_start();
+// Disable cache supaya data sentiasa latest bila refresh / back button
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+// Include config.php untuk sambung ke database
 require_once '../config.php';
 
+// Security check: hanya Student dibenarkan akses page ini
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
     header('Location: ../Module1/login.php');
     exit();
@@ -18,6 +23,7 @@ $userID = $_SESSION['UserID'];
 /* --------------------------------
    FETCH STUDENT RECORD
 ----------------------------------*/
+// Ambil maklumat pelajar berdasarkan UserID dari session
 $sql = "SELECT * FROM User WHERE UserID = '$userID'";
 $result = mysqli_query($conn, $sql);
 $student = mysqli_fetch_assoc($result);
@@ -25,6 +31,13 @@ $student = mysqli_fetch_assoc($result);
 /* --------------------------------
    TOTAL DEMERIT POINTS
 ----------------------------------*/
+/*
+Kira jumlah keseluruhan mata demerit pelajar.
+JOIN digunakan untuk gabungkan:
+- Summon (rekod saman)
+- ViolationType (mata kesalahan)
+- Vehicle (kenderaan milik pelajar)
+*/
 $sqlPoints = "
     SELECT SUM(vt.ViolationPoints) AS TotalPoints
     FROM Summon s
@@ -39,6 +52,7 @@ $totalPoints = $rowPoints['TotalPoints'] ?? 0;
 /* --------------------------------
    SUMMON FILTERING
 ----------------------------------*/
+// Filter saman berdasarkan status (all / paid / unpaid)
 $filter = $_GET['filter'] ?? 'all';
 $filterQuery = "";
 
@@ -51,6 +65,7 @@ if ($filter === 'paid') {
 /* --------------------------------
    FETCH SUMMON LIST
 ----------------------------------*/
+// Ambil senarai saman pelajar berdasarkan filter yang dipilih
 $sqlSummons = "
     SELECT s.*, v.PlateNumber, vt.ViolationName, vt.ViolationPoints
     FROM Summon s
@@ -64,7 +79,10 @@ $summons = mysqli_query($conn, $sqlSummons);
 /* --------------------------------
    FETCH LATEST PUNISHMENT DETAILS
 ----------------------------------*/
-/* If points < 20, no punishment record should apply */
+/*
+Ambil rekod punishment terbaru untuk pelajar ini.
+Jika mata < 20, tiada punishment akan dikenakan.
+*/
 if ($totalPoints < 20) {
     $punishStart  = '-';
     $punishEnd    = '-';
@@ -165,6 +183,7 @@ if ($totalPoints < 20) {
 
         <div class="container">
 
+            <!-- Header ringkas untuk paparan mata demerit -->
             <!-- HEADER BOX -->
             <div class="section-sub-box">
                 <div class="section-sub-title">Demerit Points & Punishment Status</div>
@@ -176,6 +195,7 @@ if ($totalPoints < 20) {
                 <!-- SECTION TITLE -->
                 <div class="section-title">Demerit Points & Punishment Status</div>
 
+                <!-- Papar kenderaan pelajar -->
                 <!-- VEHICLE -->
                 <div class="detail-row">
                     <span class="detail-label">Vehicle:</span>
@@ -188,6 +208,7 @@ if ($totalPoints < 20) {
                     </span>
                 </div>
 
+                <!-- Papar jumlah mata demerit -->
                 <!-- TOTAL POINTS -->
                 <div class="detail-row">
                     <span class="detail-label">Total Demerit Points:</span>
@@ -196,6 +217,7 @@ if ($totalPoints < 20) {
                     </span>
                 </div>
 
+                <!-- Papar status punishment berdasarkan jumlah mata -->
                 <!-- PUNISHMENT STATUS -->
                 <div class="detail-row">
                     <span class="detail-label">Punishment Status:</span>
@@ -214,6 +236,7 @@ if ($totalPoints < 20) {
                     </span>
                 </div>
 
+                <!-- Tarikh mula dan tamat punishment -->
                 <!-- Start Date -->
                 <div class="detail-row">
                     <span class="detail-label">Start Date:</span>
@@ -242,6 +265,7 @@ if ($totalPoints < 20) {
 
                 <div class="divider"></div>
 
+                <!-- Senarai peraturan punishment berdasarkan mata demerit -->
                 <!-- PUNISHMENT RULES -->
                 <div class="section-title">Punishment Rules</div>
 
@@ -267,6 +291,7 @@ if ($totalPoints < 20) {
 
                 <div class="divider"></div>
 
+                <!-- Senarai saman pelajar -->
                 <!-- SUMMONS -->
                 <div class="section-title">My Summons</div>
 
@@ -304,6 +329,7 @@ if ($totalPoints < 20) {
                             <span class="detail-value"><?= $row['Location']; ?></span>
                         </div>
 
+                        <!-- Action: bayar saman jika masih unpaid -->
                         <div class="detail-row">
                             <span class="detail-label">Action:</span>
                             <span class="detail-value">
@@ -338,6 +364,7 @@ if ($totalPoints < 20) {
     </div>
 
     <script>
+        // Fix issue back button (reload page bila cached)
         //pageshow - event bila page show. e.g - tekan background
         window.addEventListener("pageshow", function(event) {
             //true kalau the page is cached 

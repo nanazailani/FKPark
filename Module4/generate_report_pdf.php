@@ -1,27 +1,31 @@
 <?php
+// Aktifkan error reporting untuk senang debug masa development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Start session untuk check role user (Security Staff)
 session_start();
+// Elakkan browser simpan cache supaya data sentiasa latest
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+// Sambung ke database menggunakan config.php
 require_once '../config.php';
 
-// Make sure Dompdf is installed via Composer:
-// composer require dompdf/dompdf
+// Load Dompdf library (installed via Composer)
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-// Security check
+// Security check: hanya Security Staff dibenarkan akses report
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
     header("Location: ../login.php");
     exit();
 }
 
-// ===================== BASIC STATS (same as dashboard) =====================
+// ===================== BASIC STATS =====================
+// Statistik ringkas sama seperti dashboard
 $today = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM Summon 
@@ -52,6 +56,7 @@ $unpaidCount = mysqli_fetch_assoc(mysqli_query($conn, "
 "))['total'];
 
 // ===================== SUMMONS PER MONTH =====================
+// Kira jumlah saman bagi setiap bulan (tahun semasa)
 $monthlyCounts = array_fill(1, 12, 0);
 
 $resMonthly = mysqli_query($conn, "
@@ -69,7 +74,8 @@ while ($row = mysqli_fetch_assoc($resMonthly)) {
 $monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 $monthData   = array_values($monthlyCounts);
 
-// ===================== SUMMONS BY VIOLATION (DONUT DATA) =====================
+// ===================== SUMMONS BY VIOLATION =====================
+// Data untuk ringkasan jenis kesalahan
 $vioLabels = [];
 $vioCounts = [];
 
@@ -86,6 +92,7 @@ while ($row = mysqli_fetch_assoc($resVio)) {
 }
 
 // ===================== TOP VIOLATORS =====================
+// Senarai pelajar dengan mata demerit tertinggi
 $topViolators = [];
 
 $resTop = mysqli_query($conn, "
@@ -108,7 +115,7 @@ while ($row = mysqli_fetch_assoc($resTop)) {
     $topViolators[] = $row;
 }
 
-// ===================== BUILD HTML FOR PDF =====================
+// Mula output buffering untuk bina HTML sebelum convert ke PDF
 $todayDate = date('d M Y, H:i');
 
 ob_start();
@@ -120,6 +127,7 @@ ob_start();
     <meta charset="utf-8">
     <title>FKPark Security Dashboard Report</title>
     <style>
+        /* Styling untuk PDF (warna, font, layout) */
         body {
             font-family: Helvetica, sans-serif;
             font-size: 12px;
@@ -351,6 +359,7 @@ ob_start();
 $html = ob_get_clean();
 
 // ===================== RENDER PDF =====================
+// Tukar HTML kepada PDF menggunakan Dompdf
 $options = new Options();
 $options->setDefaultFont('Helvetica');
 

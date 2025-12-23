@@ -1,21 +1,32 @@
 <?php
+// Enable error reporting supaya senang debug masa development
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Start session untuk simpan maklumat login user
 session_start();
+// Disable cache supaya data sentiasa latest bila refresh page
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Include config.php untuk sambung ke database
 require_once '../config.php';
 
+// Security check: hanya Security Staff dibenarkan akses page ini
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
     header("Location: ../login.php");
     exit();
 }
 
-// Get total demerit points per student
+/*
+Query ini digunakan untuk:
+- Ambil semua pelajar (UserRole = Student)
+- Kira jumlah mata demerit setiap pelajar
+- Ambil maklumat punishment terakhir (start date, end date, status)
+
+Subquery digunakan untuk kira total mata demerit berdasarkan semua saman
+*/
 $sql = "
 SELECT 
     U.UserID,   
@@ -66,7 +77,7 @@ $result = mysqli_query($conn, $sql);
 
         <div class="header">📉 Demerit Records</div>
 
-        <!-- FILTER BAR -->
+        <!-- Filter bar: search Student ID, filter punishment & sort points -->
         <div style="margin-bottom: 15px; display: flex; gap: 15px;">
 
             <!-- Search bar -->
@@ -100,6 +111,7 @@ $result = mysqli_query($conn, $sql);
         <div class="box">
             <h2>Student Demerit Points</h2>
 
+            <!-- Table untuk paparkan senarai pelajar dan mata demerit -->
             <table id="demeritTable">
                 <tr>
                     <th>Student ID</th>
@@ -114,6 +126,7 @@ $result = mysqli_query($conn, $sql);
                 <?php while ($row = mysqli_fetch_assoc($result)): ?>
 
                     <?php
+                    // Tentukan jenis punishment berdasarkan jumlah mata demerit
                     $points = $row['TotalPoints'] ?? 0;
 
                     if ($points < 20) {
@@ -141,7 +154,9 @@ $result = mysqli_query($conn, $sql);
                         <td class="center"><?= $row['StartDate'] ?? '-' ?></td>
                         <td class="center"><?= $row['EndDate'] ?? '-' ?></td>
                         <td class="center">
-                            <?php if ($row['PunishmentStatus'] == 'Active'): ?>
+                            <?php
+                            // Papar status enforcement (Active / Completed / None)
+                            if ($row['PunishmentStatus'] == 'Active'): ?>
                                 <span style="background:#FF6B6B; color:white; padding:6px 18px; border-radius:25px; font-weight:700; display:inline-block;">
                                     Active
                                 </span>
@@ -165,6 +180,7 @@ $result = mysqli_query($conn, $sql);
     </div>
 
     <script>
+        // Function untuk filter dan sort table secara live (frontend sahaja)
         function filterAndSortTable() {
             const search = document.getElementById("searchInput").value.toLowerCase();
             const punishment = document.getElementById("punishmentFilter").value.toLowerCase();
@@ -203,7 +219,7 @@ $result = mysqli_query($conn, $sql);
         document.getElementById("sortPoints").addEventListener("change", filterAndSortTable);
     </script>
     <script>
-        //pageshow - event bila page show. e.g - tekan background
+        // Fix issue bila tekan back button (force reload page)
         window.addEventListener("pageshow", function(event) {
             //true kalau the page is cached 
             if (event.persisted) {

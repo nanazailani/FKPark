@@ -1,20 +1,26 @@
 <?php
+// Start session untuk simpan info login (UserRole, UserID)
+// Disable cache supaya dashboard sentiasa tunjuk data terkini
 session_start();
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+// Enable semua error untuk senang debug masa development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Include config.php untuk sambung ke database
 require_once '../config.php';
 
-
+// Security check: hanya Security Staff boleh akses dashboard ini
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
     header("Location: ../Module1/login.php");
     exit();
 }
 
 // ===================== BASIC STATS =====================
+// Kira statistik ringkas untuk paparan dashboard
+// Kira jumlah saman (contoh: hari ini / bulan ini / keseluruhan)
 $today = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM Summon 
@@ -45,7 +51,8 @@ $unpaidCount = mysqli_fetch_assoc(mysqli_query($conn, "
 "))['total'];
 
 // ===================== SUMMONS PER MONTH =====================
-// Prepare an array for 12 months
+// Data untuk bar chart (jumlah saman ikut bulan)
+// Sediakan array kosong untuk 12 bulan (Jan - Dec)
 $monthlyCounts = array_fill(1, 12, 0);
 
 $resMonthly = mysqli_query($conn, "
@@ -55,6 +62,7 @@ $resMonthly = mysqli_query($conn, "
     GROUP BY MONTH(SummonDate)
 ");
 
+// Masukkan data dari database ke dalam array bulan
 while ($row = mysqli_fetch_assoc($resMonthly)) {
     $m = (int)$row['m'];
     $monthlyCounts[$m] = (int)$row['total'];
@@ -64,7 +72,8 @@ while ($row = mysqli_fetch_assoc($resMonthly)) {
 $monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 $monthData   = array_values($monthlyCounts);
 
-// ===================== SUMMONS BY VIOLATION (DONUT) =====================
+// ===================== SUMMONS BY VIOLATION =====================
+// Data untuk donut chart (jenis kesalahan)
 $vioLabels = [];
 $vioCounts = [];
 
@@ -80,9 +89,16 @@ while ($row = mysqli_fetch_assoc($resVio)) {
     $vioCounts[] = (int)$row['total'];
 }
 
-// ===================== TOP VIOLATORS (BY DEMERIT POINTS) =====================
+// ===================== TOP VIOLATORS =====================
+// Senarai pelajar dengan mata demerit tertinggi
 $topViolators = [];
 
+/*
+Query ini kira:
+- Jumlah saman setiap pelajar
+- Jumlah mata demerit terkumpul
+Data di-sort untuk dapatkan top 5 pelajar
+*/
 $resTop = mysqli_query($conn, "
     SELECT 
         U.UserID,
@@ -256,7 +272,7 @@ while ($row = mysqli_fetch_assoc($resTop)) {
     <div class="main-content">
         <div class="header">🛡 Security Staff Dashboard</div>
 
-
+        <!-- Papar alert jika masih ada saman belum dibayar -->
         <!-- UNPAID ALERT -->
         <?php if ($unpaidCount > 0): ?>
             <div class="alert-box alert-unpaid">
@@ -268,6 +284,7 @@ while ($row = mysqli_fetch_assoc($resTop)) {
             </div>
         <?php endif; ?>
 
+        <!-- Papar kotak statistik ringkas -->
         <!-- STATISTICS -->
         <div class="stat-grid">
             <div class="stat-box">
@@ -296,6 +313,7 @@ while ($row = mysqli_fetch_assoc($resTop)) {
             </div>
         </div>
 
+        <!-- Papar carta (bar chart & donut chart) -->
         <!-- CHARTS -->
         <div class="chart-grid">
             <!-- Bar Chart -->
@@ -311,6 +329,7 @@ while ($row = mysqli_fetch_assoc($resTop)) {
             </div>
         </div>
 
+        <!-- Papar senarai top violators -->
         <!-- TOP VIOLATORS -->
         <div class="chart-card" style="animation-delay:0.2s; width: 95%;">
             <h2>🏅 Top Violators (by Demerit Points)</h2>
@@ -372,11 +391,13 @@ while ($row = mysqli_fetch_assoc($resTop)) {
     </div>
 
     <script>
+        // Auto refresh dashboard setiap 30 saat
         // Auto-refresh every 30 seconds (for "real-time" stats)
         setInterval(function() {
             location.reload();
         }, 30000);
 
+        // Bar chart: jumlah saman ikut bulan
         // ===== BAR CHART: Summons per Month =====
         const monthLabels = <?= json_encode($monthLabels); ?>;
         const monthData = <?= json_encode($monthData); ?>;
@@ -407,6 +428,7 @@ while ($row = mysqli_fetch_assoc($resTop)) {
             }
         });
 
+        // Donut chart: pecahan saman ikut jenis kesalahan
         // ===== DONUT CHART: Summons by Violation Type =====
         const vioLabels = <?= json_encode($vioLabels); ?>;
         const vioData = <?= json_encode($vioCounts); ?>;
@@ -440,6 +462,7 @@ while ($row = mysqli_fetch_assoc($resTop)) {
         });
     </script>
     <script>
+        // Fix issue back button (force reload bila page cached)
         //pageshow - event bila page show. e.g - tekan background
         window.addEventListener("pageshow", function(event) {
             //true kalau the page is cached 

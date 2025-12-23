@@ -1,18 +1,24 @@
 <?php
+// Start session untuk simpan info login (UserRole, UserID)
 session_start();
+// Disable cache supaya list saman sentiasa latest bila refresh / back button
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+// Enable semua error supaya senang debug masa development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Include config.php untuk sambung ke database
 require_once '../config.php';
 
+// Security check: hanya Security Staff dibenarkan akses page ini
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
     header("Location: ../login.php");
     exit();
 }
 
+// Query ini ambil senarai semua saman bersama maklumat pelajar
 /* -----------------------------------------
    FIXED SQL QUERY
    - Removed invalid Student table join
@@ -40,6 +46,8 @@ $result = mysqli_query($conn, $sql);
 
 <!DOCTYPE html>
 <html>
+
+<!-- Head section: style, CSS dan layout untuk page -->
 
 <head>
     <title>Summon List</title>
@@ -103,15 +111,15 @@ $result = mysqli_query($conn, $sql);
 
 <body>
 
-    <!-- SIDEBAR -->
+    <!-- Sidebar untuk Security Staff -->
     <?php include '../templates/security_sidebar.php'; ?>
 
-    <!-- MAIN CONTENT -->
+    <!-- Main content: senarai saman -->
     <div class="main-content">
 
         <div class="header">⚠️ Summon List</div>
 
-        <!-- SEARCH + FILTER BAR -->
+        <!-- Search & filter bar: cari ikut ID, nama, status dan tarikh -->
         <div style="margin-bottom: 15px; display: flex; gap: 15px;">
 
             <input type="text" id="searchInput" placeholder="Search summons..."
@@ -129,7 +137,7 @@ $result = mysqli_query($conn, $sql);
 
         </div>
 
-        <!-- SUMMON TABLE -->
+        <!-- Table untuk paparkan semua rekod saman -->
         <div class="box">
             <h2>All Summons</h2>
 
@@ -161,6 +169,7 @@ $result = mysqli_query($conn, $sql);
                         </td>
 
                         <td class="action-container">
+                            <!-- Action buttons: View, Edit dan Delete saman -->
                             <a class="action-btn" href="security_summon_view.php?id=<?= $row['SummonID'] ?>">
                                 🔍 View
                             </a>
@@ -186,7 +195,7 @@ $result = mysqli_query($conn, $sql);
 
     </div>
 
-    <!-- FILTER SCRIPT -->
+    <!-- Script untuk filter table secara live (frontend sahaja) -->
     <script>
         function filterTable() {
             const search = document.getElementById("searchInput").value.toLowerCase();
@@ -226,7 +235,7 @@ $result = mysqli_query($conn, $sql);
         document.getElementById("dateFilter").addEventListener("change", filterTable);
     </script>
 
-    <!-- DELETE CONFIRMATION POPUP -->
+    <!-- Popup confirmation sebelum padam saman -->
     <div id="deletePopup"
         style="
         display:none; 
@@ -266,6 +275,7 @@ $result = mysqli_query($conn, $sql);
     </div>
 
     <script>
+        // Handle popup delete dan redirect ke delete page
         let deleteID = null;
 
         document.querySelectorAll(".delete-btn").forEach(btn => {
@@ -284,6 +294,7 @@ $result = mysqli_query($conn, $sql);
         });
     </script>
     <script>
+        // Fix issue back button (reload page bila cached)
         //pageshow - event bila page show. e.g - tekan background
         window.addEventListener("pageshow", function(event) {
             //true kalau the page is cached 
