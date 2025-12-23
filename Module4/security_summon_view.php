@@ -1,19 +1,25 @@
 <?php
 
+// Enable error reporting supaya senang debug masa development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Start session untuk simpan info login (UserRole, UserID)
 session_start();
+// Disable cache supaya page sentiasa load data terbaru
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+// Include config.php untuk sambung ke database
 require_once '../config.php';
 
+// Security check: hanya Security Staff boleh akses page ini
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
     header("Location: ../login.php");
     exit();
 }
 
+// Check SummonID dari URL (GET)
 if (!isset($_GET['id'])) {
     echo "Missing Summon ID";
     exit();
@@ -21,7 +27,7 @@ if (!isset($_GET['id'])) {
 
 $summonID = $_GET['id'];
 
-// Handle Update Status
+// Handle update status & notes bila security edit saman
 if (isset($_POST['updateStatus'])) {
     $newStatus = $_POST['SummonStatus'];
     $notes = mysqli_real_escape_string($conn, $_POST['Notes']);
@@ -38,7 +44,14 @@ if (isset($_POST['updateStatus'])) {
     exit();
 }
 
-// Fetch Summon Details
+/*
+Query untuk ambil maklumat lengkap saman:
+- Summon (maklumat saman)
+- Vehicle (plate number)
+- User (maklumat pelajar)
+- ViolationType (jenis kesalahan)
+- Demerit (mata demerit untuk saman ini)
+*/
 $sql = "
     SELECT 
         S.*, 
@@ -56,8 +69,10 @@ $sql = "
     WHERE S.SummonID = '$summonID'
 ";
 
+// Execute query dan ambil data saman
 $result = mysqli_query($conn, $sql);
 
+// Kalau summon tak jumpa, paparkan mesej error
 if (mysqli_num_rows($result) === 0) {
     echo "Summon not found.";
 
@@ -176,6 +191,7 @@ $data = mysqli_fetch_assoc($result);
 
         <div class="view-card">
 
+            <!-- Section: Maklumat pelajar & kenderaan -->
             <!-- === Student & Vehicle Section === -->
             <div class="section-title">Student & Vehicle Information</div>
 
@@ -197,6 +213,7 @@ $data = mysqli_fetch_assoc($result);
 
             <div class="divider"></div>
 
+            <!-- Section: Maklumat kesalahan & mata demerit -->
             <!-- === Violation Section === -->
             <div class="section-title">Violation Details</div>
 
@@ -217,6 +234,7 @@ $data = mysqli_fetch_assoc($result);
 
             <div class="divider"></div>
 
+            <!-- Section: Maklumat saman -->
             <!-- === Summon Info Section === -->
             <div class="section-title">Summon Information</div>
 
@@ -247,11 +265,13 @@ $data = mysqli_fetch_assoc($result);
 
             <div class="divider"></div>
 
+            <!-- Section: Bukti (gambar / fail) -->
             <!-- === Evidence Section === -->
             <div class="section-title">Evidence</div>
 
             <div class="evidence-box">
                 <?php
+                // Auto-fix path lama untuk evidence (kes lama)
                 $evidence = $data['Evidence'];
 
                 // auto-fix older "../uploads/" paths
@@ -278,6 +298,7 @@ $data = mysqli_fetch_assoc($result);
 
 
 
+            <!-- Button untuk kembali ke senarai saman -->
             <div style="margin-top: 25px; text-align:center;">
                 <a href="security_summon_list.php"
                     style="font-size:20px; font-weight:700; color:#4A3F00; text-decoration:none;">
@@ -286,6 +307,7 @@ $data = mysqli_fetch_assoc($result);
             </div>
         </div>
         <script>
+            // Fix issue back button (reload bila page cached)
             //pageshow - event bila page show. e.g - tekan background
             window.addEventListener("pageshow", function(event) {
                 //true kalau the page is cached 

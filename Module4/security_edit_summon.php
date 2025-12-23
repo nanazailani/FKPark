@@ -1,21 +1,30 @@
 <?php
+// Enable error reporting supaya senang debug masa development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Include config.php untuk sambung ke database
 include '../config.php';
+// Start session untuk access maklumat login user
 session_start();
+// Disable cache supaya data sentiasa latest bila refresh / back button
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-// Validate ID
+// Check SummonID dari URL. Kalau tak ada, stop proses
 if (!isset($_GET['id'])) {
     die("ERROR: Missing summon ID.");
 }
 
 $id = $_GET['id'];
 
-// Fetch summon (CORRECT TABLE + CORRECT COLUMN NAMES)
+/*
+Ambil data summon berdasarkan SummonID.
+JOIN dengan:
+- ViolationType untuk dapat nama kesalahan
+- Vehicle untuk dapat VehicleID
+*/
 $result = mysqli_query($conn, "
     SELECT S.*, V.VehicleID, VT.ViolationName 
     FROM Summon S
@@ -27,6 +36,10 @@ $result = mysqli_query($conn, "
 
 $data = mysqli_fetch_assoc($result);
 
+/*
+Ambil enforcement (PunishmentDuration) untuk user pemilik kenderaan.
+Flow: Summon -> Vehicle -> UserID -> PunishmentDuration (Active)
+*/
 $enf = mysqli_query($conn, "
     SELECT P.*
     FROM PunishmentDuration P
@@ -41,19 +54,21 @@ $enfData = mysqli_fetch_assoc($enf);
 $enfStatus = $enfData['Status'] ?? '';
 $enfID = $enfData['PunishmentDurationID'] ?? '';
 
+// Kalau summon tak wujud, paparkan error
 if (!$data) {
     die("ERROR: Summon record not found.");
 }
 
-// Fetch violation types for dropdown
+// Ambil semua violation types untuk dropdown selection
 $violations = mysqli_query($conn, "SELECT * FROM ViolationType");
 
-// Update logic
+// Handle update bila user tekan button "Update Summon"
 if (isset($_POST['update'])) {
 
     $violationID = $_POST['violation'];
     $status = $_POST['status'];
 
+    // Update Summon: tukar violation type & status (Paid/Unpaid)
     mysqli_query(
         $conn,
         "UPDATE Summon SET 
@@ -61,6 +76,7 @@ if (isset($_POST['update'])) {
             SummonStatus = '$status'
         WHERE SummonID = '$id'"
     );
+    // Kalau ada enforcement, boleh update status (Active/Completed)
     if (!empty($_POST['enforcement_status']) && !empty($_POST['enforcement_id'])) {
         $newEnfStatus = $_POST['enforcement_status'];
         $eid = $_POST['enforcement_id'];
@@ -72,6 +88,7 @@ if (isset($_POST['update'])) {
         ");
     }
 
+    // Redirect balik ke page yang sama untuk elak resubmit bila refresh
     header("Location: security_edit_summon.php?id=$id&updated=1");
     exit;
 }
@@ -203,7 +220,7 @@ if (isset($_POST['update'])) {
         <div style="display:flex; justify-content:center; width:100%;">
             <div class="edit-container">
 
-                <!-- SUCCESS ANIMATION -->
+                <!-- Popup hijau kecil bila update berjaya -->
                 <?php if (isset($_GET['updated'])): ?>
                     <script>
                         document.addEventListener("DOMContentLoaded", () => {
@@ -265,6 +282,7 @@ if (isset($_POST['update'])) {
             </div>
         </div>
         <script>
+            // Fix issue back button (reload bila page cached)
             //pageshow - event bila page show. e.g - tekan background
             window.addEventListener("pageshow", function(event) {
                 //true kalau the page is cached 
