@@ -17,14 +17,13 @@ if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
     exit();
 }
 
-// Check sama ada SummonID dihantar melalui URL
-if (!isset($_GET['id'])) {
+// Check sama ada SummonID dihantar melalui URL (match QR & view page)
+$summonID = (int)($_GET['summon_id'] ?? 0);
+
+if ($summonID <= 0) {
     echo "Invalid summon ID.";
     exit();
 }
-
-// Ambil SummonID dari URL
-$summonID = $_GET['id'];
 
 /*
 Query untuk ambil maklumat saman:

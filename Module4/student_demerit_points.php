@@ -334,7 +334,7 @@ if ($totalPoints < 20) {
                             <span class="detail-label">Action:</span>
                             <span class="detail-value">
                                 <?php if (strtolower($row['SummonStatus']) !== 'paid'): ?>
-                                    <a href="student_pay_summon.php?id=<?= $row['SummonID']; ?>" style="font-weight:700; color:#1B73E8;">[Pay]</a>
+                                    <a href="student_pay_summon.php?summon_id=<?= $row['SummonID']; ?>" style="font-weight:700; color:#1B73E8;">[Pay]</a>
                                 <?php else: ?>
                                     <span style="color:gray; font-weight:600;">[No Action Needed]</span>
                                 <?php endif; ?>
