@@ -8,6 +8,7 @@ if ($summonID <= 0) {
     die("Invalid summon.");
 }
 
+
 $sql = "
 SELECT 
     s.SummonID,

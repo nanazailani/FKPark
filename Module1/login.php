@@ -19,32 +19,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $row = mysqli_fetch_assoc($result);
 
-        // Step 2: Verify password
+        // ✅ CHECK PASSWORD FIRST
         if (password_verify($password, $row['UserPassword'])) {
 
-            // Store session variables
-            $_SESSION['UserID'] = $row['UserID'];
+            // ✅ SET SESSION
+            $_SESSION['UserID']   = $row['UserID'];
             $_SESSION['UserName'] = $row['UserName'];
             $_SESSION['UserRole'] = $row['UserRole'];
 
-            // Redirect based on role
-            if ($row['UserRole'] == "Student") {
-                header("Location: ../Module1/student_dashboard.php");
-            } else if ($row['UserRole'] == "Security Staff") {
-                header("Location: ../Module4/security_dashboard.php");
-            } else if ($row['UserRole'] == "Administrator") {
-                header("Location: ../Module2/admin_dashboard.php");
+            // ✅ REDIRECT LOGIC (QR or dashboard)
+            if (isset($_SESSION['redirect_after_login'])) {
+
+                $redirect = $_SESSION['redirect_after_login'];
+                unset($_SESSION['redirect_after_login']);
+                header("Location: " . $redirect);
+            } else {
+
+                if ($row['UserRole'] == "Student") {
+                    header("Location: ../Module1/student_dashboard.php");
+                } else if ($row['UserRole'] == "Security Staff") {
+                    header("Location: ../Module4/security_dashboard.php");
+                } else if ($row['UserRole'] == "Administrator") {
+                    header("Location: ../Module2/admin_dashboard.php");
+                }
             }
             exit();
-
         } else {
             echo "<script>alert('Incorrect Password!'); window.location='login.php';</script>";
         }
-
     } else {
         echo "<script>alert('User Not Found or Wrong User Type!'); window.location='login.php';</script>";
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -113,7 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             width: 150px;
             height: auto;
         }
-
     </style>
 </head>
 
