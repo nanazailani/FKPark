@@ -23,6 +23,7 @@ header("Expires: 0");
     </div>
 
     <a href="../Module1/student_dashboard.php">🏠 Dashboard</a>
+    <a href="../Module2/daily_availability.php">📊 Daily Availability</a>
     <a href="../Module1/student_vehicle_registration.php">🚗 Register Vehicle</a>
     <a href="../Module1/student_view_vehicle.php">📄 My Vehicles</a>
     <!-- module 3 -->

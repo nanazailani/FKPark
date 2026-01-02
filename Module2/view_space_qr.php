@@ -1,80 +1,101 @@
 <?php
 require '../config.php';
-if (session_status() === PHP_SESSION_NONE) session_start();
-//clear cache
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
-header("Expires: 0");
 
-$id = $_GET['id'] ?? '';
-if (!$id) { header('Location: manage_spaces.php'); exit; }
+$spaceID = $_GET['id'] ?? '';
+$areaID  = $_GET['area'] ?? '';
+
+if (!$spaceID) {
+    header("Location: manage_parking_area.php");
+    exit;
+}
 
 $stmt = $conn->prepare("
-    SELECT QRCodeData, QRImage, GeneratedDate, GeneratedBy 
-    FROM space_qr_code 
-    WHERE ParkingSpaceID = ? 
-    ORDER BY QRCodeID DESC LIMIT 1
+    SELECT QRCodeData, QRImage, GeneratedDate
+    FROM space_qr_code
+    WHERE ParkingSpaceID = ?
+    ORDER BY QRCodeID DESC
+    LIMIT 1
 ");
-$stmt->bind_param('s', $id);
+$stmt->bind_param("s", $spaceID);
 $stmt->execute();
 $qr = $stmt->get_result()->fetch_assoc();
 ?>
+
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
+<meta charset="utf-8">
 <title>Space QR</title>
+
 <link rel="stylesheet" href="../templates/admin_style.css">
+
 <style>
-.print-box{text-align:center;}
-@media print {
-  body * { visibility: hidden; }
-  .print-box, .print-box * { visibility: visible; }
-  .print-box { position:absolute; left:0; top:0; width:100%; }
+.action-btn {
+    display: inline-block;
+    padding: 10px 18px;
+    background: #FF7A00;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.action-btn:hover {
+    background: #e56b00;
+}
+
+.back-btn {
+    background: #777;
+}
+
+.back-btn:hover {
+    background: #555;
 }
 </style>
 </head>
+
 <body>
 
 <?php include_once('../templates/admin_sidebar.php'); ?>
 
 <div class="main-content">
 <div class="page-box">
-<header class="header">🔳 Space QR</header>
 
-<div class="box print-box">
+<header class="header">🔳 Parking Space QR</header>
+
+<div class="box" style="text-align:center">
+
 <?php if ($qr): ?>
-    <p><strong>QR Data:</strong> <?= htmlspecialchars($qr['QRCodeData']) ?></p>
-    <p><strong>Generated:</strong> <?= htmlspecialchars($qr['GeneratedDate']) ?> by <?= htmlspecialchars($qr['GeneratedBy']) ?></p>
 
-    <?php if ($qr['QRImage'] && file_exists(__DIR__ . '/../uploads/qr/' . $qr['QRImage'])): ?>
-        <img src="../uploads/qr/<?= htmlspecialchars($qr['QRImage']) ?>" style="max-width:300px;">
-    <?php else: ?>
-        <p>QR image missing. Please regenerate.</p>
-    <?php endif; ?>
+    <img src="../uploads/qr/<?= htmlspecialchars($qr['QRImage']) ?>" width="280">
 
-    <br><br>
-    <button class="btn" onclick="window.print()">Print QR</button>
+    <p style="margin-top:10px">
+        <strong>QR Target:</strong><br>
+        <?= htmlspecialchars($qr['QRCodeData']) ?>
+    </p>
+
 <?php else: ?>
+
     <p>No QR generated yet.</p>
+
+    <a href="generate_qr.php?id=<?= urlencode($spaceID) ?>&area=<?= urlencode($areaID) ?>"
+       class="action-btn">
+       Generate QR
+    </a>
+
 <?php endif; ?>
 
 <br><br>
-<a class="btn outline" href="manage_spaces.php">Back</a>
+
+<a href="manage_spaces.php?area=<?= urlencode($areaID) ?>"
+   class="action-btn back-btn">
+   Back
+</a>
+
 </div>
 </div>
 </div>
-<script>
-            //pageshow - event bila page show. e.g - tekan background
-            window.addEventListener("pageshow", function (event) 
-            {
-                //true kalau the page is cached 
-                if (event.persisted) 
-                {
-                    //page reload
-                    window.location.reload();
-                }
-            });
-        </script>
+
 </body>
 </html>

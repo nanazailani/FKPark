@@ -1,57 +1,70 @@
 <?php
+// ===============================
+// FILE: add_parking_area.php
+// PURPOSE: Add a new parking area
+// ===============================
+
 require '../config.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
-//clear cache
+
+// Prevent cache
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 
+// Handle form submit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $code = $conn->real_escape_string($_POST['AreaCode']);
-    $name = $conn->real_escape_string($_POST['AreaName']);
-    $type = $conn->real_escape_string($_POST['AreaType']);
-    $desc = $conn->real_escape_string($_POST['AreaDescription']);
-    $cap  = intval($_POST['Capacity']);
-    $loc  = $conn->real_escape_string($_POST['LocationDesc']);
-    $status = $conn->real_escape_string($_POST['StatusID']);
 
-    $id = 'PA' . str_pad(rand(1,999),3,'0',STR_PAD_LEFT);
+    $code   = trim($_POST['AreaCode']);
+    $name   = trim($_POST['AreaName']);
+    $type   = trim($_POST['AreaType']);
+    $desc   = trim($_POST['AreaDescription']);
+    $cap    = intval($_POST['Capacity']);
+    $loc    = trim($_POST['LocationDesc']);
+    $status = trim($_POST['AreaStatus']);
+
+    // Generate new ParkingAreaID safely
+    $res = $conn->query("
+        SELECT MAX(CAST(SUBSTRING(ParkingAreaID,3) AS UNSIGNED)) AS maxID 
+        FROM parking_area
+    ");
+    $next = ($res->fetch_assoc()['maxID'] ?? 0) + 1;
+    $id   = 'PA' . str_pad($next, 4, '0', STR_PAD_LEFT);
 
     $stmt = $conn->prepare("
-        INSERT INTO parking_area 
+        INSERT INTO parking_area
         (ParkingAreaID, AreaCode, AreaName, AreaType, AreaDescription, Capacity, LocationDesc, AreaStatus)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param('sssssiss', $id, $code, $name, $type, $desc, $cap, $loc, $status);
-
+    $stmt->bind_param(
+        "sssssiss",
+        $id, $code, $name, $type, $desc, $cap, $loc, $status
+    );
     $stmt->execute();
 
-    header('Location: manage_parking_area.php');
+    header("Location: manage_parking_area.php");
     exit;
 }
 ?>
+
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
+<meta charset="utf-8">
 <title>Add Parking Area</title>
-<link rel="stylesheet" href="../templates/admin_style.css?v=3">
+<link rel="stylesheet" href="../templates/admin_style.css">
 
-<!--  LOCAL FORM STYLE  -->
 <style>
 .form-grid {
     display: grid;
-    grid-template-columns: 160px 1fr;
-    row-gap: 14px;
-    column-gap: 20px;
+    grid-template-columns: 180px 1fr;
+    gap: 14px 20px;
     align-items: center;
 }
-
 .form-grid label {
     font-weight: 600;
     color: #773f00;
 }
-
 .form-grid input,
 .form-grid select,
 .form-grid textarea {
@@ -59,77 +72,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid #FFD7B8;
-    font-family: inherit;
 }
-
 .form-actions {
     grid-column: 2 / 3;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 </style>
 </head>
 
 <body>
+
 <?php include_once('../templates/admin_sidebar.php'); ?>
 
 <div class="main-content">
-  <div class="page-box">
-    <header class="header">➕📍 Add Parking Area</header>
+<div class="page-box">
 
-    <div class="box">
-      <form method="post" class="form-grid">
+<header class="header">➕ Add Parking Area</header>
 
-        <label>Area Code</label>
-        <input type="text" name="AreaCode" required>
+<div class="box">
+<form method="post" class="form-grid">
 
-        <label>Area Name</label>
-        <input type="text" name="AreaName" required>
+    <label>Area Code</label>
+    <input name="AreaCode" placeholder="A1" required>
 
-        <label>Area Type</label>
-        <select name="AreaType">
-          <option>Student</option>
-          <option>Staff</option>
-          <option>Visitor</option>
-        </select>
+    <label>Area Name</label>
+    <input name="AreaName" placeholder="Main Block" required>
 
-        <label>Capacity</label>
-        <input type="number" name="Capacity" value="10" required>
+    <label>Area Type</label>
+    <select name="AreaType">
+        <option value="Open">Open</option>
+        <option value="Covered">Covered</option>
+        <option value="Basement">Basement</option>
+    </select>
 
-        <label>Location</label>
-        <input type="text" name="LocationDesc">
+    <label>Description</label>
+    <textarea name="AreaDescription" rows="3"></textarea>
 
-        <label>Description</label>
-        <textarea name="AreaDescription" rows="3"></textarea>
+    <label>Capacity</label>
+    <input type="number" name="Capacity" required>
 
-        <label>Status</label>
-        <select name="StatusID">
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-        </select>
+    <label>Location</label>
+    <input name="LocationDesc" placeholder="Near Gate A">
 
-        <div class="form-actions">
-          <button class="btn-success" type="submit">Create Area</button>
-<br>
-<a class="btn-danger" href="manage_parking_area.php">Cancel</a>
+    <label>Status</label>
+    <select name="AreaStatus">
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+    </select>
 
-        </div>
-
-      </form>
+    <div class="form-actions">
+        <button class="btn-success" type="submit">Save Area</button>
+        <br><br>
+        <a class="btn-danger" href="manage_parking_area.php">Cancel</a>
     </div>
 
-  </div>
+</form>
 </div>
+
+</div>
+</div>
+
 <script>
-            //pageshow - event bila page show. e.g - tekan background
-            window.addEventListener("pageshow", function (event) 
-            {
-                //true kalau the page is cached 
-                if (event.persisted) 
-                {
-                    //page reload
-                    window.location.reload();
-                }
-            });
-        </script>
+window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+</script>
+
 </body>
 </html>

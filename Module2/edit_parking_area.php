@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param('ssssisss', $code, $name, $type, $desc, $cap, $loc, $status, $id);
     $stmt->execute();
 
-    header('Location: manage_parking_area.php');
     exit;
 }
 
