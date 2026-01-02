@@ -59,7 +59,7 @@ if ($_SESSION['UserRole'] === 'Administrator') {
 }
 
 .area-card {
-    background: #FFF3E6;
+    background: #fcfbfbff;
     border-radius: 18px;
     padding: 18px;
     cursor: default;               /* NOT clickable */
