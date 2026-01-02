@@ -3,7 +3,7 @@
 // Enable semua error supaya senang debug masa development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
+session_start();
 // Include config.php untuk sambung ke database
 require_once '../config.php';
 // Load library phpqrcode untuk generate QR code
@@ -144,7 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         mkdir($qrDir, 0777, true);
     }
 
-    $qrText = "http://localhost/FKPark/Module4/view_summon.php?id=" . $summonID;
+    $qrText = "http://localhost/FKPark/Module4/student_view_summon.php?summon_id=" . $summonID;
     $qrFileName = "summon_" . $summonID . ".png";
     $qrFilePath = $qrDir . $qrFileName;
 

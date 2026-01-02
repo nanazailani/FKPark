@@ -13,18 +13,21 @@ require_once '../config.php';
 
 // Security check: pastikan hanya Student boleh akses page payment
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
+
+    // Simpan page ini supaya lepas login boleh patah balik
+    $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+
     header("Location: ../Module1/login.php");
     exit();
 }
 
-// Check sama ada SummonID dihantar melalui URL
-if (!isset($_GET['id'])) {
+// Check sama ada SummonID dihantar melalui URL (match QR & view page)
+$summonID = (int)($_GET['summon_id'] ?? 0);
+
+if ($summonID <= 0) {
     echo "Invalid summon ID.";
     exit();
 }
-
-// Ambil SummonID dari URL
-$summonID = $_GET['id'];
 
 /*
 Query untuk ambil maklumat saman:
@@ -52,7 +55,7 @@ if (!$data) {
 }
 
 // Kalau saman sudah dibayar, terus redirect balik ke page demerit
-if (strtolower($data['SummonStatus']) === 'paid') {
+if (strtolower($data['SummonStatus']) === 'paid') { //strtolower = string to lower
     echo "<script>window.location='student_demerit_points.php?paid=1';</script>";
     exit();
 }
@@ -160,7 +163,7 @@ if (isset($_POST['confirmPayment'])) {
 
         <?php if (!empty($paymentSuccess)): ?>
             <script>
-                // Papar popup bila payment berjaya
+                // Papar popup bila payment berjaya by using addEventListener function
                 document.addEventListener("DOMContentLoaded", () => {
                     document.getElementById('paymentPopup').style.display = "flex";
                 });
@@ -263,9 +266,8 @@ if (isset($_POST['confirmPayment'])) {
     <script>
         // Papar popup bila payment berjaya
         document.addEventListener("DOMContentLoaded", () => {
-            const urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(window.location.search); //add parameter to url
             // No auto redirect or param check needed anymore
-
             document.getElementById("closePopup").onclick = () => {
                 document.getElementById('paymentPopup').style.display = "none";
             };
