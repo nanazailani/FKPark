@@ -1,41 +1,56 @@
 <?php
+// start session
 session_start();
+
+// no cache - no go back after logout
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+
+// database connection
 require_once '../config.php';
 
+// check if administrator
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Administrator') {
     header("Location: ../Module1/login.php");
     exit();
 }
 
-// Filter role
+// filter role
 $filter = isset($_GET['role']) ? $_GET['role'] : "All";
 
-// Build query
+// sql query
 if ($filter == "All") {
     $query = "SELECT * FROM User ORDER BY UserName ASC";
 } else {
     $query = "SELECT * FROM User WHERE UserRole = '$filter' ORDER BY UserName ASC";
 }
 
+// run sql
 $users = mysqli_query($conn, $query);
 ?>
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>User List</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="../templates/admin_style.css">
 
     <style>
-        .user-box {
-            background: #fff;
-            padding: 20px;
-            border-radius: 15px;
-            width: 70%;
+        .user-card {
+            background: #ffffff;
             border-left: 8px solid #FFB873;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-radius: 20px;
+        }
+
+        .user-inner {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
         }
 
         .user-item {
@@ -47,16 +62,20 @@ $users = mysqli_query($conn, $query);
             font-size: 16px;
         }
 
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
         .user-avatar {
-            font-size: 24px;
+            font-size: 22px;
             margin-right: 10px;
         }
 
         .view-btn {
             background: #FF9A3C;
-            padding: 8px 15px;
+            padding: 8px 16px;
             color: white;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
             text-decoration: none;
             font-weight: 700;
@@ -64,10 +83,6 @@ $users = mysqli_query($conn, $query);
 
         .view-btn:hover {
             background: #FF7F11;
-        }
-
-        .filter-box {
-            margin-bottom: 20px;
         }
 
         .filter-select {
@@ -82,7 +97,7 @@ $users = mysqli_query($conn, $query);
         .filter-btn {
             background: #FF9A3C;
             padding: 10px 18px;
-            margin-left: 5px;
+            margin-left: 8px;
             border: none;
             border-radius: 10px;
             color: white;
@@ -95,15 +110,19 @@ $users = mysqli_query($conn, $query);
         }
     </style>
 </head>
-<body>
+
+<body class="bg-light">
 
 <?php include '../templates/admin_sidebar.php'; ?>
 
 <div class="main-content">
-    <div class="header">👥 User List</div>
 
-    <div class="filter-box">
-        <form method="GET">
+    <div class="container mt-4">
+
+        <div class="header mb-4">👥 User List</div>
+
+        <!-- FILTER -->
+        <form method="GET" class="mb-3">
             <select name="role" class="filter-select">
                 <option value="All" <?= $filter == "All" ? 'selected' : '' ?>>All Users</option>
                 <option value="Administrator" <?= $filter == "Administrator" ? 'selected' : '' ?>>Administrator</option>
@@ -113,32 +132,38 @@ $users = mysqli_query($conn, $query);
 
             <button type="submit" class="filter-btn">Filter</button>
         </form>
-    </div>
 
-    <div class="user-box">
+        <div class="user-card">
 
-        <?php while ($u = mysqli_fetch_assoc($users)): ?>
-            <div class="user-item">
-                <div>
-                    <span class="user-avatar">👨🏻‍💼</span>
-                    <?= $u['UserName'] ?> (<?= $u['UserRole'] ?>)
-                </div>
-                
-                <a class="view-btn" href="admin_user_view.php?id=<?= $u['UserID'] ?>">View</a>
+            <div class="user-inner">
+
+                <?php while ($u = mysqli_fetch_assoc($users)): ?>
+                    <div class="user-item">
+                        <div>
+                            <span class="user-avatar">👨🏻‍💼</span>
+                            <?= $u['UserName'] ?> (<?= $u['UserRole'] ?>)
+                        </div>
+
+                        <a class="view-btn" href="admin_user_view.php?id=<?= $u['UserID'] ?>">
+                            View
+                        </a>
+                    </div>
+                <?php endwhile; ?>
+
             </div>
-        <?php endwhile; ?>
+        </div>
 
     </div>
-
 </div>
+
 <script>
-    // If the page was loaded from cache (e.g., user pressed Back)
+    // reload if press back button
     window.addEventListener("pageshow", function (event) {
         if (event.persisted) {
-            // Force a full reload
             window.location.reload();
         }
     });
 </script>
+
 </body>
 </html>

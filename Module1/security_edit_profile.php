@@ -12,8 +12,6 @@ if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') 
 }
 
 $userID = $_SESSION['UserID'];
-
-// Fetch existing security staff information
 $result = mysqli_query($conn, "SELECT * FROM User WHERE UserID = '$userID'");
 $user = mysqli_fetch_assoc($result);
 
@@ -24,11 +22,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
 
-    // ⚠️ If password empty, keep existing hashed password
+    // If password empty, keep existing hashed password
     if (empty($password)) {
         $hashedPassword = $user['UserPassword'];
     } else {
-        // Hash new password properly
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     }
 
@@ -49,98 +46,109 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo 'ERROR: ' . mysqli_error($conn);
     }
 }
-
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Edit Security Profile</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Security layout -->
     <link rel="stylesheet" href="../templates/security_style.css">
 
+    <!-- Yellow theme (kept on purpose) -->
     <style>
-        .edit-box {
+        .profile-card {
             background: #ffffff;
-            padding: 25px;
+            border-left: 8px solid #FFE28A;
             border-radius: 20px;
-            width: 70%;
-            margin-top: 20px;
+            padding: 25px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            border-left: 8px solid #FFA74A;
         }
 
-        .edit-box h2 {
-            color: #6A3C00;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        label {
-            font-weight: 600;
-            color: #6A3C00;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #FFCE8A;
+        .form-control {
             background: #FFF8E6;
-            margin-bottom: 15px;
+            border: 1px solid #FFCE8A;
+            border-radius: 12px;
+            padding: 12px;
         }
 
-        button {
-            background: #FF9A3C;
+        .form-control:focus {
+            border-color: #FF9A3C;
+            box-shadow: none;
+        }
+
+        .btn-custom {
+            background: #FFC93C;
             color: white;
             padding: 12px 22px;
             font-size: 16px;
             font-weight: 700;
             border: none;
             border-radius: 12px;
-            cursor: pointer;
         }
 
-        button:hover {
-            background: #FF7F11;
+        .btn-custom:hover {
+            background: #FFBB22;
             transform: scale(1.03);
         }
     </style>
 </head>
-<body>
+
+<body class="bg-light">
 
 <?php include '../templates/security_sidebar.php'; ?>
 
 <div class="main-content">
 
-    <div class="header">⚙️ Edit Profile</div>
+    <!-- SAME Bootstrap structure as Admin -->
+    <div class="container mt-4">
 
-    <div class="edit-box">
+        <div class="header mb-4">⚙️ Edit Profile</div>
 
-        <form method="POST">
+        <div class="card profile-card">
+            <div class="card-body">
 
-            <label>Full Name</label>
-            <input type="text" name="name" value="<?= $user['UserName']; ?>" required>
+                <form method="POST">
 
-            <label>Email</label>
-            <input type="email" name="email" value="<?= $user['UserEmail']; ?>" required>
+                    <div class="mb-3">
+                            <label><b>Full Name</b></label>
+                            <input class="form-control" type="text" name="name" value="<?= $user['UserName']; ?>" required>
+                        </div>
 
-            <label>Password (leave blank to keep current)</label>
-            <input type="password" name="password" placeholder="Enter new password">
+                        <div class="mb-3">
+                            <label><b>Email</b></label>
+                            <input class="form-control" type="email" name="email" value="<?= $user['UserEmail']; ?>" required>
+                        </div>
 
-            <button type="submit">Save Changes</button>
+                        <div class="mb-4">
+                            <label><b>Password (leave blank to keep current)</b></label>
+                            <input class="form-control" type="password" name="password" placeholder="Enter new password">
+                        </div>
 
-        </form>
+                    <button type="submit" class="btn btn-custom">
+                        Save Changes
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
 
     </div>
-
 </div>
+
 <script>
-    // If the page was loaded from cache (e.g., user pressed Back)
+    //prevent access via browser back button after logout
     window.addEventListener("pageshow", function (event) {
         if (event.persisted) {
-            // Force a full reload
             window.location.reload();
         }
     });
 </script>
+
 </body>
 </html>

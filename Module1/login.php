@@ -1,33 +1,43 @@
 <?php
+
+//start session
 session_start();
+
+//no cache - no back after logout
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+
+//connect database
 require_once '../config.php';
 
+//run after the form is submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
+    //get data drom form
     $userID = mysqli_real_escape_string($conn, $_POST['userID']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
     $userType = mysqli_real_escape_string($conn, $_POST['userType']);
 
-    // Step 1: Get the user by ID + Role
+    //find user in database
     $sql = "SELECT * FROM user WHERE UserID = '$userID' AND UserRole = '$userType'";
     $result = mysqli_query($conn, $sql);
 
+    //only one user, multiple user = failed login
     if ($result && mysqli_num_rows($result) === 1) {
 
+        //get user record as array
         $row = mysqli_fetch_assoc($result);
 
-        // Step 2: Verify password
+        //verify password
         if (password_verify($password, $row['UserPassword'])) {
 
-            // Store session variables
+            //store login session
             $_SESSION['UserID'] = $row['UserID'];
             $_SESSION['UserName'] = $row['UserName'];
             $_SESSION['UserRole'] = $row['UserRole'];
 
-            // Redirect based on role
+            //dashboard based on role
             if ($row['UserRole'] == "Student") {
                 header("Location: ../Module1/student_dashboard.php");
             } else if ($row['UserRole'] == "Security Staff") {

@@ -28,7 +28,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($password)) {
         $hashedPassword = $user['UserPassword'];
     } else {
-        // Hash the new password
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     }
 
@@ -49,46 +48,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo 'ERROR: ' . mysqli_error($conn);
     }
 }
-
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Edit Student Profile</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Student layout -->
     <link rel="stylesheet" href="../templates/student_style.css">
 
     <style>
-        .edit-box {
-            background: #ffffff;
-            padding: 25px;
+        /* OUTER CARD – light blue background */
+        .profile-card {
+            background: #EAF4FF;
+            border-left: 8px solid #5B9BFF;
             border-radius: 20px;
-            width: 70%;
-            margin-top: 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            border-left: 8px solid #4DA3FF;
-        }
-
-        .edit-box h2 {
-            color: #0A3D62;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        label {
-            font-weight: 600;
-            color: #0A3D62;
-        }
-
-        input {
-            width: 100%;
             padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #82C1FF;
-            background: #F0F8FF;
-            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
         }
 
-        button {
+        .form-control {
+            background: #F0F8FF;
+            border: 1px solid #82C1FF;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .form-control:focus {
+            border-color: #1B98E0;
+            box-shadow: none;
+        }
+
+        .btn-custom {
             background: #1B98E0;
             color: white;
             padding: 12px 22px;
@@ -96,51 +91,69 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-weight: 700;
             border: none;
             border-radius: 12px;
-            cursor: pointer;
         }
 
-        button:hover {
+        .btn-custom:hover {
             background: #1478B5;
             transform: scale(1.03);
         }
     </style>
 </head>
-<body>
+
+<body class="bg-light">
 
 <?php include '../templates/student_sidebar.php'; ?>
 
 <div class="main-content">
 
-    <div class="header">⚙️ Edit Profile</div>
+    <!-- SAME STRUCTURE AS ADMIN & SECURITY -->
+    <div class="container mt-4">
 
-    <div class="edit-box">
+        <div class="header mb-4">⚙️ Edit Profile</div>
 
-        <form method="POST">
+        <!-- BLUE BACKGROUND CARD -->
+        <div class="card profile-card">
 
-            <label>Full Name</label>
-            <input type="text" name="name" value="<?= $user['UserName']; ?>" required>
+            <!-- WHITE INNER CARD -->
+            <div class="card-body">
 
-            <label>Email</label>
-            <input type="email" name="email" value="<?= $user['UserEmail']; ?>" required>
+                <form method="POST">
 
-            <label>Password (leave blank to keep current)</label>
-            <input type="password" name="password" placeholder="Enter new password">
+                    <div class="mb-3">
+                            <label><b>Full Name</b></label>
+                            <input class="form-control" type="text" name="name" value="<?= $user['UserName']; ?>" required>
+                        </div>
 
-            <button type="submit">Save Changes</button>
+                        <div class="mb-3">
+                            <label><b>Email</b></label>
+                            <input class="form-control" type="email" name="email" value="<?= $user['UserEmail']; ?>" required>
+                        </div>
 
-        </form>
+                        <div class="mb-4">
+                            <label><b>Password (leave blank to keep current)</b></label>
+                            <input class="form-control" type="password" name="password" placeholder="Enter new password">
+                        </div>
+
+                    <button type="submit" class="btn btn-custom">
+                        Save Changes
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
 
     </div>
-
 </div>
+
 <script>
-    // If the page was loaded from cache (e.g., user pressed Back)
+    // Prevent cached access after logout
     window.addEventListener("pageshow", function (event) {
         if (event.persisted) {
-            // Force a full reload
             window.location.reload();
         }
     });
 </script>
+
 </body>
 </html>

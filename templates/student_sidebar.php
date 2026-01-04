@@ -13,7 +13,7 @@ header("Expires: 0");
     <div class="profile-box" style="text-align:center; margin-bottom:20px;">
 
         <h3 style="color:#0A3D62; margin-top:10px;">
-            Welcome! <?= $_SESSION['UserName']; ?>
+            Welcome! <br><?= $_SESSION['UserName']; ?>
         </h3>
 
         <a href="../Module1/student_edit_profile.php?id=<?= $_SESSION['UserID']; ?>" 

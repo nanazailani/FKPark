@@ -1,52 +1,53 @@
 <?php
+// start session
 session_start();
+
+// no cache
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+
+// database connection
 require_once '../config.php';
 
-// Restrict to admin only
+// check if administrator
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Administrator') {
     header("Location: ../Module1/login.php");
     exit();
 }
 
-// Make sure an ID is provided
+// make sure id exists
 if (!isset($_GET['id'])) {
-    header("Location: user_list.php");
+    header("Location: admin_user_list.php");
     exit();
 }
 
 $userID = $_GET['id'];
 
-// Fetch user info
-$sql = mysqli_query($conn, "SELECT * FROM User WHERE UserID = '$userID'");
+// get user data
+$sql  = mysqli_query($conn, "SELECT * FROM User WHERE UserID = '$userID'");
 $user = mysqli_fetch_assoc($sql);
 
+// if user not found
 if (!$user) {
-    echo "<script>alert('User not found!'); window.location='user_list.php';</script>";
+    echo "<script>alert('User not found!'); window.location='admin_user_list.php';</script>";
     exit();
 }
 
-//
-// ===== UPDATE USER =====
-//
+// ================= UPDATE USER =================
 if (isset($_POST['update'])) {
 
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $passwordInput = $_POST['password'];
+    $name     = mysqli_real_escape_string($conn, $_POST['name']);
+    $email    = mysqli_real_escape_string($conn, $_POST['email']);
+    $password = $_POST['password'];
 
-    // If admin typed a new password → hash it
-    if (!empty($passwordInput)) {
-        $hashedPassword = password_hash($passwordInput, PASSWORD_DEFAULT);
+    if (!empty($password)) {
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     } else {
-        // Keep old password if field is empty
         $hashedPassword = $user['UserPassword'];
     }
 
     $role = mysqli_real_escape_string($conn, $_POST['role']);
-    $status = mysqli_real_escape_string($conn, $_POST['status']);
 
     $update = "
         UPDATE User
@@ -57,7 +58,6 @@ if (isset($_POST['update'])) {
         WHERE UserID='$userID'
     ";
 
-
     mysqli_query($conn, $update);
 
     echo "<script>
@@ -67,24 +67,18 @@ if (isset($_POST['update'])) {
     exit();
 }
 
-//
-// ===== DELETE USER =====
-//
+// ================= DELETE USER =================
 if (isset($_POST['delete'])) {
 
     $id = mysqli_real_escape_string($conn, $_POST['userid']);
 
-    // Get role
     $roleQuery = mysqli_query($conn, "SELECT UserRole FROM user WHERE UserID='$id'");
     $roleData  = mysqli_fetch_assoc($roleQuery);
     $role      = $roleData['UserRole'];
 
-    // ============================
-    // IF STUDENT
-    // ============================
+    // ---------- STUDENT ----------
     if ($role === "Student") {
 
-        // 1️⃣ Get all vehicle IDs owned by student
         $vehicleIDs = [];
         $getVehicles = mysqli_query($conn, "
             SELECT VehicleID FROM vehicle WHERE UserID='$id'
@@ -97,7 +91,6 @@ if (isset($_POST['delete'])) {
         if (!empty($vehicleIDs)) {
             $vIDs = "'" . implode("','", $vehicleIDs) . "'";
 
-            // 2️⃣ Get summons linked to vehicles
             $summonIDs = [];
             $getSummons = mysqli_query($conn, "
                 SELECT SummonID FROM summon WHERE VehicleID IN ($vIDs)
@@ -109,45 +102,28 @@ if (isset($_POST['delete'])) {
 
             if (!empty($summonIDs)) {
                 $sIDs = implode(",", $summonIDs);
-
                 mysqli_query($conn, "DELETE FROM summonqrcode WHERE SummonID IN ($sIDs)");
                 mysqli_query($conn, "DELETE FROM demerit WHERE SummonID IN ($sIDs)");
                 mysqli_query($conn, "DELETE FROM summon WHERE SummonID IN ($sIDs)");
             }
 
-            // 3️⃣ Delete vehicles
             mysqli_query($conn, "DELETE FROM vehicle WHERE VehicleID IN ($vIDs)");
         }
 
-        // 4️⃣ Booking related
-        mysqli_query($conn, "DELETE FROM bookingqrcode 
-            WHERE BookingID IN (SELECT BookingID FROM booking WHERE UserID='$id')");
-        mysqli_query($conn, "DELETE FROM parkinglog 
-            WHERE BookingID IN (SELECT BookingID FROM booking WHERE UserID='$id')");
+        mysqli_query($conn, "DELETE FROM bookingqrcode WHERE BookingID IN (SELECT BookingID FROM booking WHERE UserID='$id')");
+        mysqli_query($conn, "DELETE FROM parkinglog WHERE BookingID IN (SELECT BookingID FROM booking WHERE UserID='$id')");
         mysqli_query($conn, "DELETE FROM booking WHERE UserID='$id'");
-
-        // 5️⃣ Punishment & student profile
         mysqli_query($conn, "DELETE FROM punishmentduration WHERE UserID='$id'");
         mysqli_query($conn, "DELETE FROM student WHERE UserID='$id'");
     }
 
-    // ============================
-    // IF SECURITY STAFF
-    // ============================
+    // ---------- SECURITY STAFF ----------
     if ($role === "Security Staff") {
-
-        // Remove approval reference
-        mysqli_query($conn, "
-            UPDATE vehicle SET ApprovedBy = NULL WHERE ApprovedBy='$id'
-        ");
-
-        // Remove staff profile
+        mysqli_query($conn, "UPDATE vehicle SET ApprovedBy = NULL WHERE ApprovedBy='$id'");
         mysqli_query($conn, "DELETE FROM securitystaff WHERE UserID='$id'");
     }
 
-    // ============================
-    // DELETE USER ACCOUNT (LAST)
-    // ============================
+    // ---------- DELETE USER ----------
     mysqli_query($conn, "DELETE FROM user WHERE UserID='$id'");
 
     echo "<script>
@@ -156,120 +132,140 @@ if (isset($_POST['delete'])) {
     </script>";
     exit();
 }
-
-
-
-
-
 ?>
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>View User</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Admin layout -->
     <link rel="stylesheet" href="../templates/admin_style.css">
 
     <style>
-        .view-box {
-            background: #fff;
-            padding: 25px;
-            border-radius: 20px;
-            width: 70%;
+        /* OUTER CARD – light orange */
+        .profile-card {
+            background: #ffffff;
             border-left: 8px solid #FFB873;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-radius: 20px;
         }
 
-        label {
-            font-weight: 600;
-            color: #773f00;
+        /* INNER CARD – white */
+        .profile-inner {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 25px;
         }
 
-        input, select {
-            width: 95%;
-            padding: 12px;
+        .form-control, .form-select {
+            background: #FFEEDB;
             border: 1px solid #FFB873;
             border-radius: 12px;
-            background: #FFEEDB;
-            margin-bottom: 15px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #FF9A3C;
+            box-shadow: none;
         }
 
         .btn-save {
             background: #FF9A3C;
-            padding: 12px 20px;
             color: white;
-            border-radius: 12px;
             font-weight: 700;
+            border-radius: 12px;
+            padding: 12px 20px;
             border: none;
         }
 
         .btn-delete {
             background: #C40000;
-            padding: 12px 20px;
             color: white;
-            border-radius: 12px;
-            margin-left: 10px;
             font-weight: 700;
+            border-radius: 12px;
+            padding: 12px 20px;
             border: none;
+            margin-left: 10px;
         }
     </style>
 </head>
 
-<body>
+<body class="bg-light">
 
 <?php include '../templates/admin_sidebar.php'; ?>
 
 <div class="main-content">
-    <div class="header">👤 View/Update User Profile</div>
+    <div class="container mt-4">
 
-    <div class="view-box">
-        <form method="POST">
+        <div class="header mb-4">👤 View / Update User Profile</div>
 
-            <!-- Hidden ID for deletion -->
-            <input type="hidden" name="userid" value="<?= $user['UserID'] ?>">
+        <!-- ORANGE BACKGROUND -->
+        <div class="profile-card">
 
-            <label>User ID</label>
-            <input type="text" value="<?= $user['UserID'] ?>" disabled>
+            <!-- WHITE INNER -->
+            <div class="profile-inner">
 
-            <label>Name</label>
-            <input type="text" name="name" value="<?= $user['UserName'] ?>" required>
+                <form method="POST">
 
-            <label>Email</label>
-            <input type="email" name="email" value="<?= $user['UserEmail'] ?>" required>
+                    <input type="hidden" name="userid" value="<?= $user['UserID'] ?>">
 
-            <label>Password</label>
-            <input type="password" name="password" placeholder="Enter new password (leave blank to keep current)">
+                    <div class="mb-3">
+                        <label><b>User ID</b></label>
+                        <input type="text" class="form-control" value="<?= $user['UserID'] ?>" disabled>
+                    </div>
 
-            <label>User Role</label>
-            <select name="role" required>
-                <option value="">-- Select Role --</option>
-                <option value="Administrator" <?= $user['UserRole'] === 'Administrator' ? 'selected' : '' ?>>
-                    Administrator
-                </option>
-                <option value="Student" <?= $user['UserRole'] === 'Student' ? 'selected' : '' ?>>
-                    Student
-                </option>
-                <option value="Security Staff" <?= $user['UserRole'] === 'Security Staff' ? 'selected' : '' ?>>
-                    Security Staff
-                </option>
-            </select>
+                    <div class="mb-3">
+                        <label><b>Name</b></label>
+                        <input type="text" name="name" class="form-control" value="<?= $user['UserName'] ?>" required>
+                    </div>
 
-            <button type="submit" name="update" class="btn-save">💾 Save Changes</button>
+                    <div class="mb-3">
+                        <label><b>Email</b></label>
+                        <input type="email" name="email" class="form-control" value="<?= $user['UserEmail'] ?>" required>
+                    </div>
 
-            <button type="submit" name="delete" class="btn-delete"
-                onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone!');">
-                🗑 Delete User
-            </button>
+                    <div class="mb-3">
+                        <label><b>Password</b></label>
+                        <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current">
+                    </div>
 
-        </form>
+                    <div class="mb-4">
+                        <label><b>User Role</b></label>
+                        <select name="role" class="form-select" required>
+                            <option value="Administrator" <?= $user['UserRole']==='Administrator'?'selected':'' ?>>Administrator</option>
+                            <option value="Student" <?= $user['UserRole']==='Student'?'selected':'' ?>>Student</option>
+                            <option value="Security Staff" <?= $user['UserRole']==='Security Staff'?'selected':'' ?>>Security Staff</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" name="update" class="btn btn-save">
+                        💾 Save Changes
+                    </button>
+
+                    <button type="submit"
+                            name="delete"
+                            class="btn btn-delete"
+                            onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone!');">
+                        🗑 Delete User
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
     </div>
 </div>
+
 <script>
-    // If the page was loaded from cache (e.g., user pressed Back)
-    window.addEventListener("pageshow", function (event) {
-        if (event.persisted) {
-            // Force a full reload
-            window.location.reload();
-        }
-    });
+window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
 </script>
+
 </body>
 </html>

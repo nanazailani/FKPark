@@ -1,29 +1,47 @@
 <?php
+// Enable error reporting supaya senang debug masa development
 error_reporting(E_ALL);
+// Start session untuk simpan info login student
 ini_set('display_errors', 1);
 session_start();
+// Disable cache supaya page sentiasa load data terbaru
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+// Include config.php untuk sambung ke database
 require_once '../config.php';
 
+// Security check: pastikan hanya Student boleh akses page payment
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
     header("Location: ../Module1/login.php");
     exit();
 }
 
+// Check sama ada SummonID dihantar melalui URL
 if (!isset($_GET['id'])) {
     echo "Invalid summon ID.";
     exit();
 }
 
+// Ambil SummonID dari URL
 $summonID = $_GET['id'];
 
-// Fetch summon details
-$sql = "SELECT s.*, v.PlateNumber, vt.ViolationName, vt.DemeritPoints 
+/*
+Query untuk ambil maklumat saman:
+- Summon (maklumat saman)
+- Vehicle (plate number)
+- ViolationType (jenis kesalahan & mata demerit)
+*/
+// Execute query dan ambil data saman
+$sql = "SELECT 
+            s.*, 
+            v.PlateNumber, 
+            vt.ViolationName, 
+            d.DemeritPoints
         FROM Summon s
         JOIN Vehicle v ON s.VehicleID = v.VehicleID
         JOIN ViolationType vt ON s.ViolationTypeID = vt.ViolationTypeID
+        LEFT JOIN Demerit d ON d.SummonID = s.SummonID
         WHERE s.SummonID = '$summonID'";
 $result = mysqli_query($conn, $sql);
 $data = mysqli_fetch_assoc($result);
@@ -33,14 +51,15 @@ if (!$data) {
     exit();
 }
 
-// If already paid, stop here
+// Kalau saman sudah dibayar, terus redirect balik ke page demerit
 if (strtolower($data['SummonStatus']) === 'paid') {
     echo "<script>window.location='student_demerit_points.php?paid=1';</script>";
     exit();
 }
 
-// Handle payment confirmation
+// Handle confirm payment bila student tekan button
 if (isset($_POST['confirmPayment'])) {
+    // Update status saman kepada 'Paid'
     $sqlPay = "UPDATE Summon SET SummonStatus='Paid' WHERE SummonID='$summonID'";
     mysqli_query($conn, $sqlPay);
 
@@ -141,13 +160,14 @@ if (isset($_POST['confirmPayment'])) {
 
         <?php if (!empty($paymentSuccess)): ?>
             <script>
+                // Papar popup bila payment berjaya
                 document.addEventListener("DOMContentLoaded", () => {
                     document.getElementById('paymentPopup').style.display = "flex";
                 });
             </script>
         <?php endif; ?>
 
-        <!-- PAYMENT POPUP BACKDROP -->
+        <!-- Popup hijau: paparan payment berjaya -->
         <div id="paymentPopup"
             style="
             display:none;
@@ -190,6 +210,7 @@ if (isset($_POST['confirmPayment'])) {
             </div>
         </div>
 
+        <!-- Link untuk kembali ke page demerit points -->
         <a href="student_demerit_points.php"
             style="
                 display:inline-block;
@@ -200,6 +221,7 @@ if (isset($_POST['confirmPayment'])) {
                 font-size:16px;">
             ← Back to My Demerit Points
         </a>
+        <!-- Box utama: paparkan maklumat saman untuk pengesahan -->
         <div class="pay-box">
 
             <div class="section-title">Summon Payment Confirmation</div>
@@ -219,6 +241,7 @@ if (isset($_POST['confirmPayment'])) {
                 <span class="detail-value"><?= $data['ViolationName']; ?></span>
             </div>
 
+            <!-- Papar mata demerit untuk saman ini -->
             <div class="detail-row">
                 <span class="detail-label">Demerit Points:</span>
                 <span class="detail-value"><strong>+<?= $data['DemeritPoints']; ?></strong></span>
@@ -229,6 +252,7 @@ if (isset($_POST['confirmPayment'])) {
                 <span class="detail-value" style="color:red; font-weight:700;">Unpaid</span>
             </div>
 
+            <!-- Button untuk sahkan pembayaran saman -->
             <form method="POST">
                 <button type="submit" name="confirmPayment" class="confirm-btn" style="font-size:18px; padding:12px 25px;">Confirm Payment</button>
             </form>
@@ -237,6 +261,7 @@ if (isset($_POST['confirmPayment'])) {
 
     </div>
     <script>
+        // Papar popup bila payment berjaya
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             // No auto redirect or param check needed anymore
@@ -247,7 +272,7 @@ if (isset($_POST['confirmPayment'])) {
         });
     </script>
     <script>
-        //pageshow - event bila page show. e.g - tekan background
+        // Fix issue back button (reload page bila cached)
         window.addEventListener("pageshow", function(event) {
             //true kalau the page is cached 
             if (event.persisted) {

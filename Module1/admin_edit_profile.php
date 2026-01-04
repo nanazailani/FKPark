@@ -1,45 +1,50 @@
 <?php
+//start session
 session_start();
 
+//no cache - no go back after logout
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 
+//connect database
 require_once '../config.php';
 
-if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Administrator') 
-{
+//restrict access to administrator only
+if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Administrator') {
     header("Location: ../Module1/login.php");
     exit();
 }
 
+//get logged-in admin info
 $userID = $_SESSION['UserID'];
-
 $result = mysqli_query($conn, "SELECT * FROM User WHERE UserID = '$userID'");
 $user = mysqli_fetch_assoc($result);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") 
-{
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
+//update profile
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $name     = mysqli_real_escape_string($conn, $_POST['name']);
+    $email    = mysqli_real_escape_string($conn, $_POST['email']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
 
-    if (empty($password)) 
-    {
+    //if password empty, keep old password
+    if (empty($password)) {
         $hashedPassword = $user['UserPassword'];
-    } else 
-    {
+    } else {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     }
 
+    // update admin profile
     $sql = "
-        UPDATE User 
+        UPDATE User
         SET UserName = '$name',
             UserEmail = '$email',
             UserPassword = '$hashedPassword'
         WHERE UserID = '$userID'
     ";
 
+    //display message
     if (mysqli_query($conn, $sql)) 
     {
         echo "
@@ -56,94 +61,91 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Edit Admin Profile</title>
-    <link rel="stylesheet" href="../templates/admin_style.css">
+    <head>
+        <title>Edit Admin Profile</title>
+        <!--bootstrap-->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="../templates/admin_style.css">
 
-    <style>
-        .edit-box {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 20px;
-            width: 70%;
-            margin-top: 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            border-left: 8px solid #FFB873;
-        }
+        <style>
+            .profile-card {
+                background: #ffffff;
+                border-left: 8px solid #FFB873;
+                border-radius: 20px;
+            }
 
-        .edit-box h2 {
-            color: #773f00;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
+            .form-control {
+                background: #FFEEDB;
+                border: 1px solid #FFB873;
+                border-radius: 14px;
+            }
 
-        label {
-            font-weight: 600;
-            color: #773f00;
-        }
+            .form-control:focus {
+                border-color: #FF9A3C;
+                box-shadow: none;
+            }
 
-        input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #FFB873;
-            background: #FFEEDB;
-            margin-bottom: 15px;
-        }
+            .btn-custom {
+                background: #FF9A3C;
+                color: #fff;
+                font-weight: 700;
+                border-radius: 12px;
+                padding: 10px 22px;
+                border: none;
+            }
 
-        button {
-            background: #FF9A3C;
-            color: white;
-            padding: 12px 22px;
-            font-size: 16px;
-            font-weight: 700;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-        }
+            .btn-custom:hover {
+                background: #FF7F11;
+            }
+        </style>
+    </head>
 
-        button:hover {
-            background: #FF7F11;
-            transform: scale(1.03);
-        }
-    </style>
-</head>
-<body>
+    <body class="bg-light">
+    
+    <?php include_once('../templates/admin_sidebar.php'); ?>
 
-<?php include '../templates/admin_sidebar.php'; ?>
+    <div class="main-content">
 
-<div class="main-content">
+        <div class="container mt-4">
 
-    <div class="header">⚙️ Edit Profile</div>
+            <div class="header mb-4">
+                ⚙️ Edit Profile
+            </div>
 
-    <div class="edit-box">
+            <div class="card profile-card">
+                <div class="card-body">
 
-        <form method="POST">
+                    <form method="POST">
 
-            <label>Full Name</label>
-            <input type="text" name="name" value="<?= $user['UserName']; ?>" required>
+                        <div class="mb-3">
+                            <label><b>Full Name</b></label>
+                            <input class="form-control" type="text" name="name" value="<?= $user['UserName']; ?>" required>
+                        </div>
 
-            <label>Email</label>
-            <input type="email" name="email" value="<?= $user['UserEmail']; ?>" required>
+                        <div class="mb-3">
+                            <label><b>Email</b></label>
+                            <input class="form-control" type="email" name="email" value="<?= $user['UserEmail']; ?>" required>
+                        </div>
 
-            <label>Password (leave blank to keep current)</label>
-            <input type="password" name="password" placeholder="Enter new password">
+                        <div class="mb-4">
+                            <label><b>Password (leave blank to keep current)</b></label>
+                            <input class="form-control" type="password" name="password" placeholder="Enter new password">
+                        </div>
 
-            <button type="submit">Save Changes</button>
-
-        </form>
-
+                        <button type="submit" class="btn btn-custom">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
-</div>
-<script>
-    window.addEventListener("pageshow", function (event) 
-    {
-        if (event.persisted) 
-        {
-            window.location.reload();
-        }
-    });
-</script>
-</body>
+        <script>
+            //prevent access via browser back button after logout
+            window.addEventListener("pageshow", function (event) {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
+        </script>
+    </body>
 </html>

@@ -14,7 +14,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <div class="profile-box" style="text-align:center; margin-bottom:20px;">
 
         <h3 style="color:#5A4B00; margin-top:10px;">
-            Welcome! <?= $_SESSION['UserName']; ?>
+            Welcome! <br><?= $_SESSION['UserName'];?>
         </h3>
 
         <a href="../Module1/admin_edit_profile.php?id=<?= $_SESSION['UserID']; ?>"

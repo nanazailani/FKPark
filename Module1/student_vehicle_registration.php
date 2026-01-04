@@ -28,9 +28,8 @@ if ($getLast) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $plate = mysqli_real_escape_string($conn, $_POST['plate']);
-    $type = mysqli_real_escape_string($conn, $_POST['type']);
+    $type  = mysqli_real_escape_string($conn, $_POST['type']);
 
-    // Upload folder
     $uploadDir = "../uploads/vehicle_grants/";
     if (!file_exists($uploadDir)) {
         mkdir($uploadDir, 0777, true);
@@ -43,15 +42,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("ERROR: Failed to upload vehicle grant image.");
     }
 
-    // Save public URL
     $publicURL = "../uploads/vehicle_grants/" . $fileName;
 
-    // Insert into database
     $sql = "
-    INSERT INTO Vehicle (VehicleID, UserID, PlateNumber, VehicleType, VehicleGrant, ApprovalStatus)
-    VALUES ('$newVehicleID', '$studentID', '$plate', '$type', '$publicURL', 'Pending')
-";
-
+        INSERT INTO Vehicle (VehicleID, UserID, PlateNumber, VehicleType, VehicleGrant, ApprovalStatus)
+        VALUES ('$newVehicleID', '$studentID', '$plate', '$type', '$publicURL', 'Pending')
+    ";
 
     mysqli_query($conn, $sql);
 
@@ -62,98 +58,116 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
 }
 ?>
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Register Vehicle</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Student layout -->
     <link rel="stylesheet" href="../templates/student_style.css">
 
+    <!-- Blue theme -->
     <style>
-        .form-box {
-            background: #fff;
-            padding: 25px;
-            border-radius: 20px;
-            width: 70%;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        .vehicle-card {
+            background: #ffffff;
             border-left: 8px solid #5B9BFF;
-        }
-
-        label {
-            font-weight: 600;
-            color: #003A75;
-        }
-
-        input, select {
-            width: 100%;
+            border-radius: 20px;
             padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #5B9BFF;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .form-control,
+        .form-select {
             background: #EAF3FF;
-            margin-bottom: 15px;
+            border: 1px solid #5B9BFF;
+            border-radius: 12px;
         }
 
-        input[type="file"] {
-            background: #fff;
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #3279FF;
+            box-shadow: none;
         }
 
-        button {
+        .btn-custom {
             background: #5B9BFF;
             color: white;
-            padding: 12px 22px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
             font-weight: 700;
+            padding: 12px 22px;
+            border-radius: 12px;
+            border: none;
         }
 
-        button:hover {
+        .btn-custom:hover {
             background: #3279FF;
         }
     </style>
 </head>
 
-<body>
+<body class="bg-light">
 
-    <?php include '../templates/student_sidebar.php'; ?>
+<?php include '../templates/student_sidebar.php'; ?>
 
-    <div class="main-content">
-        <div class="header">🚗 Register Vehicle</div>
+<div class="main-content">
 
-        <div class="form-box">
+    <div class="container mt-4">
 
-            <form method="POST" enctype="multipart/form-data">
+        <div class="header mb-4">🚗 Register Vehicle</div>
 
-                <label>Vehicle ID</label>
-                <input type="text" value="<?= $newVehicleID ?>" disabled>
+        <div class="card vehicle-card">
+            <div class="card-body p-0">
 
-                <label>Plate Number</label>
-                <input type="text" name="plate" placeholder="e.g. ABC1234" required>
+                <form method="POST" enctype="multipart/form-data">
 
-                <label>Vehicle Type</label>
-                <select name="type" required>
-                    <option value="">Select Type</option>
-                    <option value="Car">Car</option>
-                    <option value="Motorcycle">Motorcycle</option>
-                </select>
+                    <div class="mb-3">
+                        <label>Vehicle ID</label>
+                        <input type="text" class="form-control" value="<?= $newVehicleID ?>" disabled>
+                    </div>
 
-                <label>Upload Vehicle Grant (Image)</label>
-                <input type="file" name="grant" accept="image/*" required>
+                    <div class="mb-3">
+                        <label>Plate Number</label>
+                        <input type="text" name="plate" class="form-control" placeholder="e.g. ABC1234" required>
+                    </div>
 
-                <button type="submit">Register Vehicle</button>
+                    <div class="mb-3">
+                        <label>Vehicle Type</label>
+                        <select name="type" class="form-select" required>
+                            <option value="">Select Type</option>
+                            <option value="Car">Car</option>
+                            <option value="Motorcycle">Motorcycle</option>
+                        </select>
+                    </div>
 
-            </form>
+                    <div class="mb-4">
+                        <label>Upload Vehicle Grant (Image)</label>
+                        <input type="file" name="grant" class="form-control" accept="image/*" required>
+                    </div>
 
+                    <button type="submit" class="btn btn-custom">
+                        Register Vehicle
+                    </button>
+
+                </form>
+
+            </div>
         </div>
 
     </div>
+</div>
+
 <script>
-    // If the page was loaded from cache (e.g., user pressed Back)
+    // Prevent cached access after logout
     window.addEventListener("pageshow", function (event) {
         if (event.persisted) {
-            // Force a full reload
             window.location.reload();
         }
     });
 </script>
+
 </body>
 </html>
