@@ -1,20 +1,36 @@
 <?php
+// Enable error reporting supaya senang debug masa development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Start session untuk simpan info login (UserRole, UserID)
 session_start();
+// Disable cache supaya page sentiasa load data terbaru
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
+// Include config.php untuk sambung ke database
 require_once '../config.php';
 
+// Security check: hanya Security Staff boleh akses page ini
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
     header('Location: ../login.php');
     exit();
 }
 
+// Ambil SummonID dari URL (GET)
 $summonID = (int)($_GET['id'] ?? 0);
 
+/*
+Query untuk ambil maklumat lengkap saman:
+- Summon (maklumat saman)
+- Vehicle (plate number)
+- ViolationType (nama kesalahan & mata)
+- User (maklumat pelajar)
+- SummonQRCode (QR code)
+- Subquery untuk kira total mata demerit pelajar
+- Subquery untuk dapatkan status enforcement yang masih aktif
+*/
 $sql = "
 SELECT 
     s.*, 
@@ -53,16 +69,17 @@ LEFT JOIN SummonQRCode sq ON s.SummonID = sq.SummonID
 WHERE s.SummonID = '$summonID'
 ";
 
-
-
+// Execute query dan ambil data saman
 $result = mysqli_query($conn, $sql);
 $summon = mysqli_fetch_assoc($result);
 
+// Kalau summon tak jumpa, redirect balik ke dashboard
 if (!$summon) {
     header("Location: security_dashboard.php");
     exit();
 }
 
+// Kira mata demerit sebelum saman ini dikeluarkan
 $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['ViolationPoints']);
 
 ?>
@@ -192,6 +209,7 @@ $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['ViolationPoint
 
         <div class="header">🎉 Summon Created Successfully</div>
 
+        <!-- Kotak success: paparkan status saman berjaya dicipta -->
         <div class="success-box">
             ✓ Summon <strong><?= $summon['SummonID']; ?></strong> has been successfully created!<br>
             Demerit points updated: <strong><?= $previousPoints; ?> → <?= $summon['TotalDemeritPoints']; ?></strong><br>
@@ -199,6 +217,7 @@ $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['ViolationPoint
         </div>
 
         <div class="box">
+            <!-- Section: Maklumat penuh saman -->
             <div class="section-title">Summon Details</div>
 
             <div class="detail-row"><span class="detail-label">Summon ID:</span>
@@ -233,6 +252,7 @@ $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['ViolationPoint
 
             <div class="divider"></div>
 
+            <!-- Section: QR code untuk view saman -->
             <div class="section-title">Summon QR Code</div>
             <div class="qr-box">
                 <?php if (!empty($summon['QRCodeData'])): ?>
@@ -242,12 +262,14 @@ $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['ViolationPoint
                     <p>No QR code available.</p>
                 <?php endif; ?>
                 <p style="color:#7A5A00;">Scan to view summon in system</p>
+                <!-- Button untuk print QR code sahaja -->
                 <button type="button" onclick="window.print()" class="btn-yellow">
                     Print QR Code
                 </button>
             </div>
         </div>
 
+        <!-- Navigation buttons: create new summon & back to dashboard -->
         <div style="margin-top:20px;">
             <a href="security_create_summon.php" class="btn-yellow">Create New Summon</a>
             <a href="security_dashboard.php" class="btn-yellow" style="background:#FFE28A;">Back to Dashboard</a>
@@ -255,7 +277,7 @@ $previousPoints = max(0, $summon['TotalDemeritPoints'] - $summon['ViolationPoint
 
     </div>
     <script>
-        //pageshow - event bila page show. e.g - tekan background
+        // Fix issue bila tekan back button (force reload page bila cached)
         window.addEventListener("pageshow", function(event) {
             //true kalau the page is cached 
             if (event.persisted) {

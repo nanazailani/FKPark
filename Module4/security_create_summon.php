@@ -1,22 +1,26 @@
 <?php
-session_start();
+// Start session untuk simpan maklumat login (UserRole, UserID, etc)
+// Enable semua error supaya senang debug masa development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
+session_start();
+// Include config.php untuk sambung ke database
 require_once '../config.php';
+// Load library phpqrcode untuk generate QR code
 require_once __DIR__ . '/phpqrcode/phpqrcode.php';
 
-// Only Security Staff can access (optional but recommended)
+// Security check: hanya Security Staff dibenarkan akses page ini
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] !== 'Security Staff') {
     header("Location: ../login.php");
     exit();
 }
 
-// Load violations list
+// Ambil senarai jenis kesalahan untuk dropdown
 $violations = mysqli_query($conn, "SELECT * FROM ViolationType");
 
-// Handle summon creation
+// Handle form submission bila tekan butang "Create Summon"
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Pastikan vehicle telah dipilih melalui carian plate number
     $vehicleID = $_POST['vehicleID'] ?? '';
 
     if (empty($vehicleID)) {
@@ -28,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $summonTime = $_POST['summonTime'] ?? '';
     $location = $_POST['location'] ?? '';
 
-    // evidence upload
+    // Proses upload bukti (gambar / file)
     $uploadDir = "../uploads/";
     $fileName = basename($_FILES["evidence"]["name"] ?? '');
     $serverPath = $uploadDir . $fileName;
@@ -45,6 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
+    // Simpan maklumat saman ke dalam table Summon
     $sqlInsert = "
         INSERT INTO Summon (VehicleID, ViolationTypeID, SummonDate, SummonTime, Location, Evidence, SummonStatus)
         VALUES ('$vehicleID', '$violationTypeID', '$summonDate', '$summonTime', '$location', '$publicURL', 'Unpaid')
@@ -52,7 +57,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     mysqli_query($conn, $sqlInsert);
     $summonID = mysqli_insert_id($conn);
 
-    // ===== INSERT DEMERIT RECORD =====
+    // Setiap saman akan create satu rekod demerit
+    // Mata demerit diambil dari ViolationType
     $getPoints = mysqli_query($conn, "
         SELECT ViolationPoints 
         FROM ViolationType 
@@ -67,8 +73,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     ");
 
     // ================= ENFORCEMENT LOGIC (AUTO) =================
+    // Kira jumlah mata demerit dan tentukan tindakan automatik
 
-    // Get UserID from Vehicle
+    // Dapatkan UserID pemilik kenderaan berdasarkan VehicleID
     $getUser = mysqli_query($conn, "
         SELECT UserID FROM Vehicle WHERE VehicleID = '$vehicleID'
     ");
@@ -77,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($userID) {
 
-        // Calculate total demerit points
+        // Kira jumlah keseluruhan mata demerit untuk user ini
         $getTotal = mysqli_query($conn, "
             SELECT SUM(d.DemeritPoints) AS TotalPoints
             FROM Demerit d
@@ -88,14 +95,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $totalRow = mysqli_fetch_assoc($getTotal);
         $totalPoints = (int)($totalRow['TotalPoints'] ?? 0);
 
-        // Deactivate existing punishment
+        // Nyahaktifkan enforcement lama supaya hanya satu yang aktif
         mysqli_query($conn, "
             UPDATE PunishmentDuration
             SET Status = 'Inactive'
             WHERE UserID = '$userID' AND Status = 'Active'
         ");
 
-        // Apply rules
+        // Tentukan jenis tindakan berdasarkan jumlah mata demerit
         if ($totalPoints < 20) {
             // Warning only (no DB insert)
         } elseif ($totalPoints < 50) {
@@ -128,17 +135,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-    // ===== QR CODE GENERATION =====
+    // ================= QR CODE GENERATION =================
+    // Generate QR code untuk view saman
+
+    // Pastikan folder qrcodes wujud
     $qrDir = __DIR__ . '/qrcodes/';
     if (!is_dir($qrDir)) {
         mkdir($qrDir, 0777, true);
     }
 
-    $qrText = "http://localhost/FKPark/Module4/view_summon.php?id=" . $summonID;
+    $qrText = "http://localhost/FKPark/Module4/student_view_summon.php?summon_id=" . $summonID;
     $qrFileName = "summon_" . $summonID . ".png";
     $qrFilePath = $qrDir . $qrFileName;
 
-    // Generate QR image
+    // Generate fail QR code dalam bentuk image PNG
     QRcode::png($qrText, $qrFilePath, QR_ECLEVEL_L, 6);
 
     // Add QR code generation safety check
@@ -146,7 +156,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         die("ERROR: QR code generation failed.");
     }
 
-    // Save QR to database
+    // Simpan path QR code ke dalam database
     $qrPublicPath = "../Module4/qrcodes/" . $qrFileName;
 
     mysqli_query($conn, "
@@ -154,7 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         VALUES ('$summonID', '$qrPublicPath', NOW())
     ");
 
-    // Optional redirect
+    // Redirect ke page success selepas saman berjaya dicipta
     header("Location: security_summon_success.php?id=" . $summonID);
     exit();
 }
@@ -237,6 +247,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     </style>
 
+    <!-- Script untuk carian plate number secara live (AJAX) -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const plateInput = document.getElementById("plateNumber");
@@ -260,6 +271,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         return;
                     }
 
+                    // Hantar plate number ke backend dan dapatkan maklumat kenderaan
                     fetch("search_vehicle.php?plate=" + encodeURIComponent(plate))
                         .then(res => res.json())
                         .then(data => {

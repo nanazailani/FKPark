@@ -46,15 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 header("Location: ../Module2/admin_dashboard.php");
             }
             exit();
-
         } else {
             echo "<script>alert('Incorrect Password!'); window.location='login.php';</script>";
         }
-
     } else {
         echo "<script>alert('User Not Found or Wrong User Type!'); window.location='login.php';</script>";
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -123,7 +122,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             width: 150px;
             height: auto;
         }
-
     </style>
 </head>
 

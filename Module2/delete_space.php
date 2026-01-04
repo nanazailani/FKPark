@@ -15,7 +15,7 @@ if (!empty($id)) {
     $stmt->close();
 }
 
-// Redirect back to the spaces list for the same area (optional improvement)
+// Redirect back to the spaces list 
 $area = $_GET['area'] ?? '';
 if (!empty($area)) {
     header("Location: manage_spaces.php?area=" . urlencode($area));

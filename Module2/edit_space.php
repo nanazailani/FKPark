@@ -1,52 +1,62 @@
 <?php
 require '../config.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
-//clear cache
+
+// =================================
+// CAPTURE & VALIDATE CONTEXT
+// =================================
+$spaceID = $_GET['id'] ?? ($_POST['id'] ?? '');
+$areaID  = $_GET['area'] ?? ($_POST['area'] ?? '');
+
+if (!$spaceID || !$areaID) {
+    die('Parking area not specified.');
+}
+
+// Prevent cache
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-$id = $_GET['id'] ?? '';
-if (!$id) {
-    header('Location: manage_spaces.php');
-    exit;
-}
-
+// Handle update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $area = $conn->real_escape_string($_POST['ParkingAreaID']);
-    $code = $conn->real_escape_string($_POST['SpaceCode']);
-    $type = $conn->real_escape_string($_POST['SpaceType']);
-    $status = $conn->real_escape_string($_POST['StatusID']);
+
+    $code   = trim($_POST['SpaceCode']);
+    $type   = trim($_POST['SpaceType']);
+    $status = $_POST['StatusID'];
 
     $stmt = $conn->prepare("
-        UPDATE parking_space 
-        SET ParkingAreaID = ?, SpaceCode = ?, SpaceType = ?, StatusID = ?
+        UPDATE parking_space
+        SET SpaceCode = ?, SpaceType = ?, StatusID = ?
         WHERE ParkingSpaceID = ?
     ");
-    $stmt->bind_param('sssss', $area, $code, $type, $status, $id);
+    $stmt->bind_param("ssss", $code, $type, $status, $spaceID);
     $stmt->execute();
 
-    header('Location: manage_spaces.php');
+    header("Location: manage_spaces.php?area=" . urlencode($areaID));
     exit;
 }
 
+// Load space info
 $stmt = $conn->prepare("SELECT * FROM parking_space WHERE ParkingSpaceID = ?");
-$stmt->bind_param('s', $id);
+$stmt->bind_param("s", $spaceID);
 $stmt->execute();
 $sp = $stmt->get_result()->fetch_assoc();
 
-$areas = $conn->query("SELECT ParkingAreaID, AreaCode, AreaName FROM parking_area ORDER BY AreaCode");
+if (!$sp) {
+    die('Parking space not found.');
+}
+
+// Load statuses
 $statuses = $conn->query("SELECT StatusID, StatusName FROM space_status");
 ?>
 
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
+<meta charset="utf-8">
 <title>Edit Parking Space</title>
-<link rel="stylesheet" href="../templates/admin_style.css?v=3">
+<link rel="stylesheet" href="../templates/admin_style.css">
 
-<!-- SAME FORM STYLE AS ADD / EDIT AREA -->
 <style>
 .form-grid {
     display: grid;
@@ -55,87 +65,69 @@ $statuses = $conn->query("SELECT StatusID, StatusName FROM space_status");
     column-gap: 20px;
     align-items: center;
 }
-
 .form-grid label {
     font-weight: 600;
     color: #773f00;
 }
-
 .form-grid input,
 .form-grid select {
     width: 100%;
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid #FFD7B8;
-    font-family: inherit;
 }
-
 .form-actions {
     grid-column: 2 / 3;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 </style>
 </head>
 
 <body>
+
 <?php include_once('../templates/admin_sidebar.php'); ?>
 
 <div class="main-content">
-  <div class="page-box">
+<div class="page-box">
 
-    <header class="header">✏️🚘 Edit Parking Space</header>
+<header class="header">✏️ Edit Parking Space</header>
 
-    <div class="box">
-      <form method="post" class="form-grid">
+<div class="box">
+<form method="post" class="form-grid">
 
-        <label>Area</label>
-        <select name="ParkingAreaID">
-          <?php while ($a = $areas->fetch_assoc()): ?>
-            <option value="<?= $a['ParkingAreaID'] ?>"
-              <?= $a['ParkingAreaID'] == $sp['ParkingAreaID'] ? 'selected' : '' ?>>
-              <?= htmlspecialchars($a['AreaCode'].' - '.$a['AreaName']) ?>
-            </option>
-          <?php endwhile; ?>
-        </select>
+    <!-- KEEP CONTEXT -->
+    <input type="hidden" name="id" value="<?= htmlspecialchars($spaceID) ?>">
+    <input type="hidden" name="area" value="<?= htmlspecialchars($areaID) ?>">
 
-        <label>Space Code</label>
-        <input type="text" name="SpaceCode" value="<?= htmlspecialchars($sp['SpaceCode']) ?>" required>
+    <label>Space Code</label>
+    <input type="text" name="SpaceCode" value="<?= htmlspecialchars($sp['SpaceCode']) ?>" required>
 
-        <label>Space Type</label>
-        <input type="text" name="SpaceType" value="<?= htmlspecialchars($sp['SpaceType']) ?>">
+    <label>Space Type</label>
+    <input type="text" name="SpaceType" value="<?= htmlspecialchars($sp['SpaceType']) ?>">
 
-        <label>Status</label>
-        <select name="StatusID">
-          <?php while ($s = $statuses->fetch_assoc()): ?>
+    <label>Status</label>
+    <select name="StatusID">
+        <?php while ($s = $statuses->fetch_assoc()): ?>
             <option value="<?= $s['StatusID'] ?>"
-              <?= $s['StatusID'] == $sp['StatusID'] ? 'selected' : '' ?>>
-              <?= htmlspecialchars($s['StatusID'].' - '.$s['StatusName']) ?>
+                <?= $s['StatusID'] == $sp['StatusID'] ? 'selected' : '' ?>>
+                <?= htmlspecialchars($s['StatusName']) ?>
             </option>
-          <?php endwhile; ?>
-        </select>
+        <?php endwhile; ?>
+    </select>
 
-        <div class="form-actions">
-          <button class="btn-success" type="submit">Save</button>
-          <br>
-          <a class="btn-danger" href="manage_spaces.php">Cancel</a>
-        </div>
-
-      </form>
+    <div class="form-actions">
+        <button class="btn-success" type="submit">Save</button>
+        <br><br>
+        <a class="btn-danger" href="manage_spaces.php?area=<?= urlencode($areaID) ?>">
+            Cancel
+        </a>
     </div>
 
-  </div>
+</form>
 </div>
-<script>
-            //pageshow - event bila page show. e.g - tekan background
-            window.addEventListener("pageshow", function (event) 
-            {
-                //true kalau the page is cached 
-                if (event.persisted) 
-                {
-                    //page reload
-                    window.location.reload();
-                }
-            });
-        </script>
+
+</div>
+</div>
+
 </body>
 </html>

@@ -24,6 +24,7 @@ header("Expires: 0");
     </div>
 
     <a href="../Module4/security_dashboard.php">🏠 Dashboard</a>
+    <a href="../Module2/daily_availability.php">📊 Daily Availability</a>
     <a href="../Module4/security_summon_list.php">⚠️ Summon List</a>
     <a href="../Module4/security_demerit_list.php">📉 Demerit Records</a>
     <a href="../Module4/security_create_summon.php">➕ Issue Summon</a>

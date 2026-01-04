@@ -13,6 +13,10 @@ require_once '../config.php';
 
 // Security check: pastikan hanya Student boleh akses page payment
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
+
+    // Simpan page ini supaya lepas login boleh patah balik
+    $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+
     header("Location: ../Module1/login.php");
     exit();
 }
@@ -263,9 +267,8 @@ if (isset($_POST['confirmPayment'])) {
     <script>
         // Papar popup bila payment berjaya
         document.addEventListener("DOMContentLoaded", () => {
-            const urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(window.location.search); //add parameter to url
             // No auto redirect or param check needed anymore
-
             document.getElementById("closePopup").onclick = () => {
                 document.getElementById('paymentPopup').style.display = "none";
             };

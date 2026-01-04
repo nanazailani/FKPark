@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param('ssssisss', $code, $name, $type, $desc, $cap, $loc, $status, $id);
     $stmt->execute();
 
-    header('Location: manage_parking_area.php');
     exit;
 }
 
@@ -52,7 +51,7 @@ $area = $stmt->get_result()->fetch_assoc();
 <title>Edit Parking Area</title>
 <link rel="stylesheet" href="../templates/admin_style.css?v=3">
 
-<!-- SAME FORM STYLE AS ADD -->
+
 <style>
 .form-grid {
     display: grid;
