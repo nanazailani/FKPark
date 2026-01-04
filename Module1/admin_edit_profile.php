@@ -1,5 +1,5 @@
 <?php
-//start session
+//start session php 
 session_start();
 
 //no cache - no go back after logout
