@@ -8,7 +8,7 @@ require_once '../config.php';
 
 // Allow only logged-in Student
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] !== 'Student') {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
     exit();
 }
 
@@ -67,6 +67,7 @@ if ($booking['Status'] !== 'Pending') {
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Parking Check-In</title>
     <link rel="stylesheet" href="_Module3CSS.css">
@@ -74,42 +75,43 @@ if ($booking['Status'] !== 'Pending') {
 </head>
 
 <body>
-<?php include '../templates/student_sidebar.php'; ?>
+    <?php include '../templates/student_sidebar.php'; ?>
 
-<div class="main-content">
+    <div class="main-content">
 
-    <div class="header">🚘 Parking Check-In</div>
+        <div class="header">🚘 Parking Check-In</div>
 
-    <div class="form-box">
+        <div class="form-box">
 
-        <p><strong>Booking ID:</strong> <?= htmlspecialchars($booking['BookingID']) ?></p>
-        <p><strong>User ID:</strong> <?= htmlspecialchars($booking['UserID']) ?></p>
+            <p><strong>Booking ID:</strong> <?= htmlspecialchars($booking['BookingID']) ?></p>
+            <p><strong>User ID:</strong> <?= htmlspecialchars($booking['UserID']) ?></p>
 
-        <p><strong>Car Park:</strong>
-            <?= htmlspecialchars($booking['AreaName'] . ' - ' . $booking['SpaceCode']) ?>
-        </p>
+            <p><strong>Car Park:</strong>
+                <?= htmlspecialchars($booking['AreaName'] . ' - ' . $booking['SpaceCode']) ?>
+            </p>
 
-        <p><strong>Booking Time:</strong>
-            <?= htmlspecialchars($booking['BookingDate'] . ' ' . $booking['StartTime'] . ' - ' . $booking['EndTime']) ?>
-        </p>
+            <p><strong>Booking Time:</strong>
+                <?= htmlspecialchars($booking['BookingDate'] . ' ' . $booking['StartTime'] . ' - ' . $booking['EndTime']) ?>
+            </p>
 
-        <form method="post" action="save_checkin.php">
+            <form method="post" action="save_checkin.php">
 
-            <label>Expected Parking Duration (minutes)</label>
-            <input type="number" name="ExpectedDuration" min="15" step="15" required>
+                <label>Expected Parking Duration (minutes)</label>
+                <input type="number" name="ExpectedDuration" min="15" step="15" required>
 
-            <input type="hidden" name="BookingID" value="<?= htmlspecialchars($booking['BookingID']) ?>">
-            <input type="hidden" name="ParkingSpaceID" value="<?= htmlspecialchars($booking['ParkingSpaceID']) ?>">
+                <input type="hidden" name="BookingID" value="<?= htmlspecialchars($booking['BookingID']) ?>">
+                <input type="hidden" name="ParkingSpaceID" value="<?= htmlspecialchars($booking['ParkingSpaceID']) ?>">
 
-            <div class="button-row">
-                <button type="submit" class="btn-primary">Confirm Check-In</button>
-                <a href="booking_list.php" class="btn-cancel">Cancel</a>
-            </div>
+                <div class="button-row">
+                    <button type="submit" class="btn-primary">Confirm Check-In</button>
+                    <a href="booking_list.php" class="btn-cancel">Cancel</a>
+                </div>
 
-        </form>
+            </form>
+        </div>
+
     </div>
 
-</div>
-
 </body>
+
 </html>

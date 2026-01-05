@@ -1,26 +1,21 @@
 <?php
-// start session
 session_start();
-
-// no cache
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
-
-// connect database
 require_once '../config.php';
 
-// check if security staff
+// Allow only Security Staff
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
-    header("Location: ../Module1/login.php");
+    header("Location: ../index.php");
     exit();
 }
 
-// ================= HANDLE APPROVE / REJECT =================
+// ======================= HANDLE APPROVE / REJECT =========================
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $vehicleID = mysqli_real_escape_string($conn, $_POST['vehicleID']);
-    $staffID   = $_SESSION['UserID'];
+    $staffID   = $_SESSION['UserID']; // Security Staff ID
 
     if (isset($_POST['approve'])) {
         $status = "Approved";
@@ -44,7 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
 }
 
-// ================= GET ALL PENDING VEHICLES =================
+
+// ======================= GET ALL PENDING VEHICLES =========================
 $query = "
     SELECT V.*, U.UserName, U.UserEmail
     FROM Vehicle V
@@ -55,38 +51,25 @@ $query = "
 
 $vehicles = mysqli_query($conn, $query);
 ?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
     <title>Approve Vehicles</title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Security layout -->
     <link rel="stylesheet" href="../templates/security_style.css">
 
     <style>
-        /* OUTER CARD – light yellow */
-        .vehicle-outer {
-            background: #ffffff;
-            border-left: 8px solid #FFE28A;
-            border-radius: 20px;
-            padding: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        .vehicle-card {
+            background: #FFFFFF;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 8px solid #FFD972;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
         }
 
-        /* INNER CARD – white */
-        .vehicle-inner {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 10px;
-        }
-
-        .vehicle-inner p {
-            margin: 6px 0;
+        .vehicle-card p {
+            margin: 5px 0;
             color: #6A3C00;
             font-size: 15px;
             font-weight: 500;
@@ -95,94 +78,79 @@ $vehicles = mysqli_query($conn, $query);
         .btn-approve {
             background: #4CAF50;
             color: white;
-            padding: 10px 18px;
+            padding: 8px 14px;
             border: none;
             border-radius: 10px;
-            font-weight: 700;
+            cursor: pointer;
             margin-right: 10px;
         }
 
         .btn-reject {
             background: #D32F2F;
             color: white;
-            padding: 10px 18px;
+            padding: 8px 14px;
             border: none;
             border-radius: 10px;
-            font-weight: 700;
+            cursor: pointer;
         }
 
         .no-data {
-            background: #FFF3D0;
-            border-radius: 20px;
             padding: 20px;
+            background: #FFF3D0;
+            border-left: 8px solid #FFD972;
+            border-radius: 12px;
             font-weight: 600;
             color: #6A3C00;
         }
     </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<?php include "../templates/security_sidebar.php"; ?>
+    <?php include "../templates/security_sidebar.php"; ?>
 
-<div class="main-content">
-    <div class="container mt-4">
-
-        <div class="header mb-4">🚗 Approve Vehicle Registrations</div>
+    <div class="main-content">
+        <div class="header">🚗 Approve Vehicle Registrations</div>
 
         <?php if (mysqli_num_rows($vehicles) == 0): ?>
             <div class="no-data">No pending vehicle registrations.</div>
         <?php else: ?>
 
             <?php while ($v = mysqli_fetch_assoc($vehicles)): ?>
+                <div class="vehicle-card">
 
-                <!-- YELLOW BACKGROUND -->
-                <div class="vehicle-outer">
+                    <p><strong>Plate Number:</strong> <?= $v['PlateNumber']; ?></p>
+                    <p><strong>Owner:</strong> <?= $v['UserName']; ?> (<?= $v['UserEmail']; ?>)</p>
+                    <p><strong>Type:</strong> <?= $v['VehicleType']; ?></p>
 
-                    <!-- WHITE INNER CARD -->
-                    <div class="vehicle-inner">
+                    <p>
+                        <strong>Vehicle Grant:</strong>
+                        <a href="<?= $v['VehicleGrant']; ?>" target="_blank" style="color:#FF7A00; font-weight:600;">
+                            View 📄
+                        </a>
+                    </p>
 
-                        <p><strong>Plate Number:</strong> <?= $v['PlateNumber']; ?></p>
-                        <p><strong>Owner:</strong> <?= $v['UserName']; ?> (<?= $v['UserEmail']; ?>)</p>
-                        <p><strong>Type:</strong> <?= $v['VehicleType']; ?></p>
+                    <form method="POST" style="margin-top:10px;">
+                        <input type="hidden" name="vehicleID" value="<?= $v['VehicleID']; ?>">
 
-                        <p>
-                            <strong>Vehicle Grant:</strong>
-                            <a href="<?= $v['VehicleGrant']; ?>" 
-                               target="_blank" 
-                               style="color:#FF7A00; font-weight:700;">
-                                View 📄
-                            </a>
-                        </p>
+                        <button name="approve" class="btn-approve">Approve ✔</button>
+                        <button name="reject" class="btn-reject">Reject ✖</button>
+                    </form>
 
-                        <form method="POST" class="mt-3">
-                            <input type="hidden" name="vehicleID" value="<?= $v['VehicleID']; ?>">
-
-                            <button name="approve" class="btn-approve">
-                                Approve ✔
-                            </button>
-
-                            <button name="reject" class="btn-reject">
-                                Reject ✖
-                            </button>
-                        </form>
-
-                    </div>
                 </div>
-
             <?php endwhile; ?>
 
         <?php endif; ?>
     </div>
-</div>
-
-<script>
-window.addEventListener("pageshow", function (event) {
-    if (event.persisted) {
-        window.location.reload();
-    }
-});
-</script>
-
+    <script>
+        // If the page was loaded from cache (e.g., user pressed Back)
+        window.addEventListener("pageshow", function(event) {
+            if (event.persisted) {
+                // Force a full reload
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
+
 </html>

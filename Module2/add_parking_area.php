@@ -38,7 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ");
     $stmt->bind_param(
         "sssssiss",
-        $id, $code, $name, $type, $desc, $cap, $loc, $status
+        $id,
+        $code,
+        $name,
+        $type,
+        $desc,
+        $cap,
+        $loc,
+        $status
     );
     $stmt->execute();
 
@@ -49,96 +56,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Add Parking Area</title>
-<link rel="stylesheet" href="../templates/admin_style.css">
 
-<style>
-.form-grid {
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: 14px 20px;
-    align-items: center;
-}
-.form-grid label {
-    font-weight: 600;
-    color: #773f00;
-}
-.form-grid input,
-.form-grid select,
-.form-grid textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid #FFD7B8;
-}
-.form-actions {
-    grid-column: 2 / 3;
-    margin-top: 20px;
-}
-</style>
+<head>
+    <meta charset="utf-8">
+    <title>Add Parking Area</title>
+    <link rel="stylesheet" href="../templates/admin_style.css">
+
+    <style>
+        .form-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            /* ✅ MORE space for inputs */
+            gap: 14px 24px;
+            /* nicer spacing */
+            align-items: center;
+            width: 110%;
+            box-sizing: border-box;
+        }
+
+        .form-grid label {
+            font-weight: 600;
+            color: #773f00;
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        .form-grid input,
+        .form-grid select,
+        .form-grid textarea {
+            width: 90%;
+            padding: 12px 10px;
+            /* ✅ slightly taller & wider feel */
+            border-radius: 10px;
+            border: 1px solid #FFD7B8;
+            box-sizing: border-box;
+        }
+
+        .form-actions {
+            grid-column: 2 / 3;
+            margin-top: 20px;
+        }
+
+        /* form box */
+        .box {
+            width: 150%;
+            max-width: 1100px;
+            margin-left: 1px;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+    </style>
+
 </head>
 
 <body>
 
-<?php include_once('../templates/admin_sidebar.php'); ?>
+    <?php include_once('../templates/admin_sidebar.php'); ?>
 
-<div class="main-content">
-<div class="page-box">
+    <div class="main-content">
+        <div class="page-box">
 
-<header class="header">➕ Add Parking Area</header>
+            <header class="header">➕ Add Parking Area</header>
 
-<div class="box">
-<form method="post" class="form-grid">
+            <div class="box">
+                <form method="post" class="form-grid">
 
-    <label>Area Code</label>
-    <input name="AreaCode" placeholder="A1" required>
+                    <label>Area Code</label>
+                    <input name="AreaCode" placeholder="A1" required>
 
-    <label>Area Name</label>
-    <input name="AreaName" placeholder="Main Block" required>
+                    <label>Area Name</label>
+                    <input name="AreaName" placeholder="Main Block" required>
 
-    <label>Area Type</label>
-    <select name="AreaType">
-        <option value="Open">Open</option>
-        <option value="Covered">Covered</option>
-        <option value="Basement">Basement</option>
-    </select>
+                    <label>Area Type</label>
+                    <select name="AreaType">
+                        <option value="Open">Open</option>
+                        <option value="Covered">Covered</option>
+                    </select>
 
-    <label>Description</label>
-    <textarea name="AreaDescription" rows="3"></textarea>
+                    <label>Description</label>
+                    <textarea name="AreaDescription" rows="3"></textarea>
 
-    <label>Capacity</label>
-    <input type="number" name="Capacity" required>
+                    <label>Capacity</label>
+                    <input type="number" name="Capacity" required>
 
-    <label>Location</label>
-    <input name="LocationDesc" placeholder="Near Gate A">
+                    <label>Location</label>
+                    <input name="LocationDesc" placeholder="Near Gate A">
 
-    <label>Status</label>
-    <select name="AreaStatus">
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
-    </select>
+                    <label>Status</label>
+                    <select name="AreaStatus">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
 
-    <div class="form-actions">
-        <button class="btn-success" type="submit">Save Area</button>
-        <br><br>
-        <a class="btn-danger" href="manage_parking_area.php">Cancel</a>
+                    <div class="form-actions">
+                        <button class="btn-success" type="submit">Save Area</button>
+                        <br><br>
+                        <a class="btn-danger" href="manage_parking_area.php">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
     </div>
 
-</form>
-</div>
-
-</div>
-</div>
-
-<script>
-window.addEventListener("pageshow", function (event) {
-    if (event.persisted) {
-        window.location.reload();
-    }
-});
-</script>
+    <script>
+        window.addEventListener("pageshow", function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
 
 </body>
+
 </html>

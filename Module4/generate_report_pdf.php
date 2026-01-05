@@ -20,7 +20,7 @@ use Dompdf\Options;
 
 // Security check: hanya Security Staff dibenarkan akses report
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
     exit();
 }
 

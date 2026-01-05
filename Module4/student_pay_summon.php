@@ -17,7 +17,7 @@ if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
     // Simpan page ini supaya lepas login boleh patah balik
     $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
 
-    header("Location: ../Module1/login.php");
+    header("Location: ../index.php");
     exit();
 }
 

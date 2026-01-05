@@ -14,7 +14,7 @@ require_once '../config.php';
 
 // Security check: hanya Student dibenarkan akses page ini
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
-    header('Location: ../Module1/login.php');
+    header("Location: ../index.php");
     exit();
 }
 

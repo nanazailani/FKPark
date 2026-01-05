@@ -15,7 +15,7 @@ require_once '../config.php';
 
 // Security check: hanya Security Staff dibenarkan akses page ini
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Security Staff') {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
     exit();
 }
 

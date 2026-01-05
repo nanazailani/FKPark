@@ -88,4 +88,3 @@ mysqli_query($conn, "
 ====================================================== */
 header("Location: checkout.php?log=" . urlencode($LogID));
 exit();
-?>

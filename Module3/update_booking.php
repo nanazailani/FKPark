@@ -6,8 +6,8 @@ header("Expires: 0");
 require_once '../config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: booking_list.php");
-    exit();
+  header("Location: booking_list.php");
+  exit();
 }
 
 $BookingID        = $_POST['BookingID'];
@@ -36,11 +36,11 @@ $clashSql = "
 $clashResult = mysqli_query($conn, $clashSql);
 
 if (mysqli_num_rows($clashResult) > 0) {
-    echo "<script>
+  echo "<script>
             alert('❌ Booking clash detected. Please choose another time or space.');
             window.history.back();
           </script>";
-    exit();
+  exit();
 }
 
 // ============================================
@@ -66,6 +66,3 @@ echo "<script>
         window.location.href = 'booking_list.php';
       </script>";
 exit();
-?>
-
-

@@ -7,7 +7,7 @@ require_once '../config.php';
 
 // Allow only Students
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
     exit();
 }
 
@@ -49,4 +49,3 @@ echo "<script>
         window.location.href = 'booking_list.php';
       </script>";
 exit();
-?>

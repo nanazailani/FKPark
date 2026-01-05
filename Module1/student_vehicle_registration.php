@@ -6,7 +6,7 @@ header("Expires: 0");
 require_once '../config.php';
 
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
-    header("Location: ../Module1/login.php");
+    header("Location: ../index.php");
     exit();
 }
 
@@ -28,8 +28,9 @@ if ($getLast) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $plate = mysqli_real_escape_string($conn, $_POST['plate']);
-    $type  = mysqli_real_escape_string($conn, $_POST['type']);
+    $type = mysqli_real_escape_string($conn, $_POST['type']);
 
+    // Upload folder
     $uploadDir = "../uploads/vehicle_grants/";
     if (!file_exists($uploadDir)) {
         mkdir($uploadDir, 0777, true);
@@ -42,12 +43,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("ERROR: Failed to upload vehicle grant image.");
     }
 
+    // Save public URL
     $publicURL = "../uploads/vehicle_grants/" . $fileName;
 
+    // Insert into database
     $sql = "
-        INSERT INTO Vehicle (VehicleID, UserID, PlateNumber, VehicleType, VehicleGrant, ApprovalStatus)
-        VALUES ('$newVehicleID', '$studentID', '$plate', '$type', '$publicURL', 'Pending')
-    ";
+    INSERT INTO Vehicle (VehicleID, UserID, PlateNumber, VehicleType, VehicleGrant, ApprovalStatus)
+    VALUES ('$newVehicleID', '$studentID', '$plate', '$type', '$publicURL', 'Pending')
+";
+
 
     mysqli_query($conn, $sql);
 
@@ -58,116 +62,101 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
 }
 ?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
     <title>Register Vehicle</title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Student layout -->
     <link rel="stylesheet" href="../templates/student_style.css">
 
-    <!-- Blue theme -->
     <style>
-        .vehicle-card {
-            background: #ffffff;
-            border-left: 8px solid #5B9BFF;
+        .form-box {
+            background: #fff;
+            padding: 25px;
             border-radius: 20px;
+            width: 70%;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-left: 8px solid #5B9BFF;
+        }
+
+        label {
+            font-weight: 600;
+            color: #003A75;
+        }
+
+        input,
+        select {
+            width: 100%;
             padding: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        }
-
-        .form-control,
-        .form-select {
-            background: #EAF3FF;
-            border: 1px solid #5B9BFF;
             border-radius: 12px;
+            border: 1px solid #5B9BFF;
+            background: #EAF3FF;
+            margin-bottom: 15px;
         }
 
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #3279FF;
-            box-shadow: none;
+        input[type="file"] {
+            background: #fff;
         }
 
-        .btn-custom {
+        button {
             background: #5B9BFF;
             color: white;
-            font-weight: 700;
             padding: 12px 22px;
-            border-radius: 12px;
             border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
         }
 
-        .btn-custom:hover {
+        button:hover {
             background: #3279FF;
         }
     </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<?php include '../templates/student_sidebar.php'; ?>
+    <?php include '../templates/student_sidebar.php'; ?>
 
-<div class="main-content">
+    <div class="main-content">
+        <div class="header">🚗 Register Vehicle</div>
 
-    <div class="container mt-4">
+        <div class="form-box">
 
-        <div class="header mb-4">🚗 Register Vehicle</div>
+            <form method="POST" enctype="multipart/form-data">
 
-        <div class="card vehicle-card">
-            <div class="card-body p-0">
+                <label>Vehicle ID</label>
+                <input type="text" value="<?= $newVehicleID ?>" disabled>
 
-                <form method="POST" enctype="multipart/form-data">
+                <label>Plate Number</label>
+                <input type="text" name="plate" placeholder="e.g. ABC1234" required>
 
-                    <div class="mb-3">
-                        <label>Vehicle ID</label>
-                        <input type="text" class="form-control" value="<?= $newVehicleID ?>" disabled>
-                    </div>
+                <label>Vehicle Type</label>
+                <select name="type" required>
+                    <option value="">Select Type</option>
+                    <option value="Car">Car</option>
+                    <option value="Motorcycle">Motorcycle</option>
+                </select>
 
-                    <div class="mb-3">
-                        <label>Plate Number</label>
-                        <input type="text" name="plate" class="form-control" placeholder="e.g. ABC1234" required>
-                    </div>
+                <label>Upload Vehicle Grant (Image)</label>
+                <input type="file" name="grant" accept="image/*" required>
 
-                    <div class="mb-3">
-                        <label>Vehicle Type</label>
-                        <select name="type" class="form-select" required>
-                            <option value="">Select Type</option>
-                            <option value="Car">Car</option>
-                            <option value="Motorcycle">Motorcycle</option>
-                        </select>
-                    </div>
+                <button type="submit">Register Vehicle</button>
 
-                    <div class="mb-4">
-                        <label>Upload Vehicle Grant (Image)</label>
-                        <input type="file" name="grant" class="form-control" accept="image/*" required>
-                    </div>
+            </form>
 
-                    <button type="submit" class="btn btn-custom">
-                        Register Vehicle
-                    </button>
-
-                </form>
-
-            </div>
         </div>
 
     </div>
-</div>
-
-<script>
-    // Prevent cached access after logout
-    window.addEventListener("pageshow", function (event) {
-        if (event.persisted) {
-            window.location.reload();
-        }
-    });
-</script>
-
+    <script>
+        // If the page was loaded from cache (e.g., user pressed Back)
+        window.addEventListener("pageshow", function(event) {
+            if (event.persisted) {
+                // Force a full reload
+                window.location.reload();
+            }
+        });
+    </script>
 </body>
+
 </html>

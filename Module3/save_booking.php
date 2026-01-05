@@ -1,5 +1,10 @@
 <?php
 session_start();
+// Enable semua error supaya senang debug masa development
+error_reporting(E_ALL);
+// Papar error terus di browser (development sahaja)
+ini_set('display_errors', 1);
+
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
@@ -117,4 +122,3 @@ if (!mysqli_query($conn, $insertQR)) {
 // ===============================
 header("Location: booking_success.php?id=" . urlencode($BookingID));
 exit();
-?>

@@ -7,7 +7,7 @@ require_once '../config.php';
 
 // access login only for Student role
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
     exit();
 }
 
@@ -60,6 +60,7 @@ $qrData = mysqli_fetch_assoc($qrResult);
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Booking Successful</title>
     <link rel="stylesheet" href="_Module3CSS.css">
@@ -67,28 +68,28 @@ $qrData = mysqli_fetch_assoc($qrResult);
 </head>
 
 <body>
-<?php include '../templates/student_sidebar.php'; ?>
+    <?php include '../templates/student_sidebar.php'; ?>
 
-<div class="main-content">
+    <div class="main-content">
 
-    <div class="header">🎉 Booking Successful</div>
+        <div class="header">🎉 Booking Successful</div>
 
-    <div class="form-box" id="print-area">
+        <div class="form-box" id="print-area">
 
-        <div class="success-title">Your Booking Has Been Confirmed!</div>
+            <div class="success-title">Your Booking Has Been Confirmed!</div>
 
-        <p><strong>Booking ID:</strong> <?= $booking['BookingID'] ?></p>
-        <p><strong>Date:</strong> <?= $booking['BookingDate'] ?></p>
-        <p><strong>Time:</strong> <?= $booking['StartTime'] ?> - <?= $booking['EndTime'] ?></p>
+            <p><strong>Booking ID:</strong> <?= $booking['BookingID'] ?></p>
+            <p><strong>Date:</strong> <?= $booking['BookingDate'] ?></p>
+            <p><strong>Time:</strong> <?= $booking['StartTime'] ?> - <?= $booking['EndTime'] ?></p>
 
-        <p><strong>Parking Space:</strong>
-            <?= $booking['AreaName'] ?> - <?= $booking['SpaceCode'] ?>
-        </p>
+            <p><strong>Parking Space:</strong>
+                <?= $booking['AreaName'] ?> - <?= $booking['SpaceCode'] ?>
+            </p>
 
-        <p><strong>Your QR Code:</strong></p>
+            <p><strong>Your QR Code:</strong></p>
 
-        <div class="qr-box">
-            <?php
+            <div class="qr-box">
+                <?php
                 $qrPath = "qr_codes/qr_" . $booking['BookingID'] . ".png";
 
                 if (file_exists($qrPath)) {
@@ -96,24 +97,25 @@ $qrData = mysqli_fetch_assoc($qrResult);
                 } else {
                     echo "<p style='color:red;'>QR Code not found.</p>";
                 }
-            ?>
-        </div>
+                ?>
+            </div>
 
-        <p style="margin-top:15px;">
-            Scan this QR when you arrive at the parking space to check in.
-        </p>
+            <p style="margin-top:15px;">
+                Scan this QR when you arrive at the parking space to check in.
+            </p>
 
-        <div class="button-row">
-            <button class="print-btn" onclick="window.print()">🖨 Print QR Code</button>
+            <div class="button-row">
+                <button class="print-btn" onclick="window.print()">🖨 Print QR Code</button>
 
-            <a href="booking_list.php">
-                <button class="btn-primary">📋 View My Bookings</button>
-            </a>
+                <a href="booking_list.php">
+                    <button class="btn-primary">📋 View My Bookings</button>
+                </a>
+            </div>
+
         </div>
 
     </div>
 
-</div>
-
 </body>
+
 </html>

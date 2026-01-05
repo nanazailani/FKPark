@@ -77,4 +77,3 @@ echo "<script>
         window.location.href = 'booking_list.php';
       </script>";
 exit();
-?>

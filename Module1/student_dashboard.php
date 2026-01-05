@@ -9,7 +9,7 @@ ini_set('display_errors', 1);
 require_once '../config.php';
 
 if (!isset($_SESSION['UserRole']) || $_SESSION['UserRole'] != 'Student') {
-    header("Location: ../Module1/login.php");
+    header("Location: ../index.php");
     exit();
 }
 
